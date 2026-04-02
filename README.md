@@ -7,7 +7,7 @@ The files relating to plyxp application note
 This repository requires a some packages from Bioconductor and CRAN to get started.
 Below is an example of how you can install the required packages to run either [code_chunks.R](./code_chunks.R) or [comparison.R](./comparison.R)
 
-```{r}
+```r
 
 if (!require("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
