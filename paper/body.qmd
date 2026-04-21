@@ -40,13 +40,7 @@ _tidySummarizedExperiment_ facilitates data exploration and visualization, allow
 <!-- and summarization tasks that may not necessarily result in an SE.-->
 
 However some complex computations involving simultaneous manipulation of matrix values and annotation metadata were slower than necessary, a limitation addressable through data-masking strategies.
-
-<!--%-->
-
 _plyxp_'s use of data masking from the _rlang_ [@rlang] package provides gains in efficiency and is currently used to speed up existing functionality within _tidySummarizedExperiment_.
-
-<!--%-->
-
 Further, _plyxp_ reinforces the structure of the annotated matrix through additional syntax compared to _tidySummarizedExperiment_, often resulting in more verbose, but more specific evaluation.
 
 # Syntax
@@ -87,15 +81,16 @@ data |>
 
 <!--\end{lstlisting}-->
 
-The above example demonstrates this grammar as implemented in _plyxp_.
-
 <!--%Using the \airway RNA-seq dataset [@Himes2014],-->
 
+The above example demonstrates this grammar as implemented in _plyxp_.
 The user computes the logarithm of the counts matrix plus a pseudocount, and creates a new logical variable in the column metadata, each of which are stored in their respective contexts.
 In the next step of the pipe, rows and columns are filtered based on available metadata about the genes and the samples.
-Here the base R `|>` symbol refers to piping the results of a function into the first place argument of the following function. As in _dplyr_, the `mutate()` verb implies an addition of an object (matrix or vector) to the corresponding evaluation context, whereas `filter()` subsets the data (described more later).
+Here the base R `|>` symbol refers to piping the results of a function into the first place argument of the following function.
+As in _dplyr_, the `mutate()` verb implies an addition of an object (matrix or vector) to the corresponding evaluation context, whereas `filter()` subsets the data (described more later).
 
-The _plyxp_ syntax is designed to be convenient and flexible, providing users with multiple tools to access or manipulate their data across contexts. For example, consider the following:
+The _plyxp_ syntax is designed to be convenient and flexible, providing users with multiple tools to access or manipulate their data across contexts.
+For example, consider the following:
 
 <!--\begin{lstlisting}-->
 

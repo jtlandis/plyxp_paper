@@ -2,9 +2,10 @@ bibliography: references.bib
 
 keep-typ: true
 format:
+  aft-pdf:
+    columns: 2
   aft-typst:
     columns: 2
-    # citeproc: false
     filters:
       # - at: pre-quarto
       #   path: _extensions/andrewheiss/wordcount/citeproc.lua
