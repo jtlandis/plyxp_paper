@@ -19,13 +19,18 @@
   abstract: none,
   abstract-title: none,
   cols: 1,
-  margin: (x: 1.25in, y: 1.25in),
-  paper: "us-letter",
+  margin: (
+    top: 25mm,
+    bottom: 25mm,
+    left: 20mm,
+    right: 20mm,
+  ),
+  paper: "a4",
   lang: "en",
   region: "US",
   font: "libertinus serif",
-  fontsize: 11pt,
-  title-size: 1.5em,
+  fontsize: 10pt,
+  title-size: 2em,
   subtitle-size: 1.25em,
   heading-family: "libertinus serif",
   heading-weight: "bold",
@@ -44,10 +49,30 @@
     paper: paper,
     margin: margin,
     numbering: pagenumbering,
+    footer: context {
+      let page-num = counter(page).display()
+      if page-num == "1" {
+        align(right)[landis | plyxp | #date | #page-num]
+      } else {
+        block[landis | plyxp #h(1fr) #page-num]
+      }
+    },
   )
   set par(justify: true)
+  set par(leading: .6em, spacing: 6pt)
   set text(lang: lang, region: region, font: font, size: fontsize)
   set heading(numbering: sectionnumbering)
+  show heading.where(level: 2): it => {
+    set text(size: fontsize)
+    it
+  }
+
+  show figure.caption: it => {
+    set text(size: fontsize - 3pt)
+    align(left)[*#it.supplement #context it.counter.display(it.numbering)*#it.separator #it.body]
+  }
+
+
   if title != none {
     align(left)[#block[
       #set par(leading: heading-line-height)
@@ -74,13 +99,14 @@
       }
     ]]
   }
+  v(1em)
   // build out authors
   if authors != none {
     let count = authors.len()
     let affils = (:)
     let n = 0
     for author in authors {
-      text(weight: "semibold")[#author.name]
+      text(weight: "semibold", size: fontsize - 1pt)[#author.name]
       if author.affiliation != none {
         // typst-show uses ||| delemiter between affiliations
         let auth_aff = author.affiliation.at("text").split("|||")
@@ -108,7 +134,8 @@
         [   ]
       }
     }
-    [\ ]
+    [\  ]
+    v(.3em)
     n = 0
     let first = true
     for key in affils.keys() {
@@ -128,6 +155,8 @@
     ]]
   }
 
+  v(1em)
+
   if abstract != none {
     if abstract-title == "Abstract" {
       // likely not set by default
@@ -136,7 +165,7 @@
       abstract-title = [#text(weight: "semibold")[#abstract-title] #h(1em)]
     }
     abstract = block[
-      #abstract-title #text(weight: "semibold")[#abstract]
+      #abstract-title #text(weight: "semibold", size: fontsize + 1pt)[#abstract]
     ]
   }
 
@@ -155,7 +184,7 @@
     ]
   }
 
-  doc = abstract + doc
+  doc = abstract + v(2em) + doc
 
   if cols == 1 {
     doc

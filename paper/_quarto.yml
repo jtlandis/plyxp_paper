@@ -1,6 +1,6 @@
 bibliography: references.bib
 
-keep-typ: true
+#keep-typ: true
 format:
   aft-pdf:
     columns: 2
