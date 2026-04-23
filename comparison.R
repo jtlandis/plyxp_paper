@@ -5,6 +5,12 @@ data(airway)
 se <- airway
 rowRanges(se) <- NULL
 
+native_version <- function(se) {
+  rowData(se)$length <- rowData(se)$gene_seq_end - rowData(se)$gene_seq_start
+  assays(se)$counts_per_bp <- assay(se, "counts") / rowData(se)$length
+  se
+}
+
 forced_conversion <- function(se) {
   tib <- tidySummarizedExperiment:::as_tibble.SummarizedExperiment(se)
   res <- tib |>
@@ -34,10 +40,23 @@ system.time({
 })
 
 bench::mark(
+  # bioconductor native calls
+  native_version(se),
+  # naive eager tibble conversion
   forced_conversion(se),
+  # tidySummarizedExperiment implementation
+  mutate(se,
+    length = gene_seq_end - gene_seq_start,
+    counts_per_bp = counts / length
+  ),
+  # plyxp implementation
   plyxp_version(xp),
   check = FALSE,
-  memory = FALSE
+  # small bug related to S7::S7_dispatch calls and how the
+  # Rprofiler parsing works within `bench`.
+  memory = FALSE,
+  # protect against cold starts
+  min_iterations = 10
 )
 
 all.equal(
