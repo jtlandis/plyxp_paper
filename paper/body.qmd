@@ -66,11 +66,6 @@ data |>
   )
 ```
 
-<!--\end{lstlisting}
-%\end{minipage}-->
-
-<!--\begin{lstlisting}-->
-
 ```r
 data |>
   filter(
@@ -78,10 +73,6 @@ data |>
     cols(avgLength >= 126)
   )
 ```
-
-<!--\end{lstlisting}-->
-
-<!--%Using the \airway RNA-seq dataset [@Himes2014],-->
 
 The above example demonstrates this grammar as implemented in _plyxp_.
 The user computes the logarithm of the counts matrix plus a pseudocount, and creates a new logical variable in the column metadata, each of which are stored in their respective contexts.
