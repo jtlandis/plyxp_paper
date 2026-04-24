@@ -131,7 +131,7 @@ _plyxp_ enforces conventions that eliminate ambiguity while providing flexibilit
 3. _dplyr_ verbs (`mutate()`{.r}, `filter()`{.r}, etc.) only support expressions that would result in the same structure of object as input (SE object).
 <!--\end{enumerate}-->
 
-Evaluation contexts and their connection via pronouns are diagrammed in Figure @fig-plyxp-diagram.
+Evaluation contexts and their connection via pronouns are diagrammed in @fig-plyxp-diagram.
 We note that _plyxp_ relies on Bioconductor-native calls, e.g. subsetting with square brackets `[,]`, and is thus never faster than using the SE interface directly.
 There will always be some overhead in generating the necessary abstraction to enable implicit references into the object as required by _dplyr_.
 However, we aim that _plyxp_ always be as close to Bioconductor-native speed as possible, via line profiling of the function definitions using _profvis_.
