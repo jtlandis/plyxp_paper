@@ -77,7 +77,7 @@ data |>
 The above example demonstrates this grammar as implemented in _plyxp_.
 The user computes the logarithm of the counts matrix plus a pseudocount, and creates a new logical variable in the column metadata, each of which are stored in their respective contexts.
 In the next step of the pipe, rows and columns are filtered based on available metadata about the genes and the samples.
-Here the base R `|>` symbol refers to piping the results of a function into the first place argument of the following function.
+Here the base R `|>`{.r} symbol refers to piping the results of a function into the first place argument of the following function.
 As in _dplyr_, the `mutate()`{.r} verb implies an addition of an object (matrix or vector) to the corresponding evaluation context, whereas `filter()`{.r} subsets the data (described more later).
 
 The _plyxp_ syntax is designed to be convenient and flexible, providing users with multiple tools to access or manipulate their data across contexts.
