@@ -1,4 +1,6 @@
 
+#let biblio-content = state("biblio-content", [])
+
 // Typst custom formats typically consist of a 'typst-template.typ' (which is
 // the source code for a typst template) and a 'typst-show.typ' which calls the
 // template's function (forwarding Pandoc metadata values as required)

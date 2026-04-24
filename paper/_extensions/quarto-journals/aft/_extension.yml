@@ -40,6 +40,8 @@ contributes:
         - aft.cls
         - te.bst
     typst:
+      # link-citations: true
       template-partials:
         - typst-template.typ
         - typst-show.typ
+        - biblio.typ
