@@ -37,3 +37,5 @@ affiliations:
 ---
 
 {{< include body.qmd >}}
+
+{{< include supp.qmd >}}
