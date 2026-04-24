@@ -55,12 +55,8 @@ For example, an object representing an RNA-seq experiment might have an `assays`
 
 By default, expressions are evaluated against the named symbols within the `assays` context.
 The user can specify to evaluate against named symbols in the row or column metadata by decorating their expressions with sentinel functions, `rows(...)`{.r} or `cols(...)`{.r}, as shown in [@fig-plyxp-syntax]A.
-Beyond communicating where expressions are evaluated, this syntax also enforces where the resulting vector or matrix will be stored. For example, with the `mutate()`{.r} command, the new objects are bound to their respective context within the object, but for the `filter()`{.r} command, instead of adding data, these results inform how the rows or columns should be subset.
-
-<!--% if desired, minipage keeps the chunks from breaking across new pages-->
-
-<!--%\begin{minipage}{\linewidth}
-\begin{lstlisting}-->
+Beyond communicating where expressions are evaluated, this syntax also enforces where the resulting vector or matrix will be stored.
+For example, with the `mutate()`{.r} command, the new objects are bound to their respective context within the object, but for the `filter()`{.r} command, instead of adding data, these results inform how the rows or columns should be subset.
 
 ```r
 data |>
