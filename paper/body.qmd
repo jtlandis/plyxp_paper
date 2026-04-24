@@ -251,4 +251,14 @@ All code used in this paper, including comparisons of run time to alternative im
 % \end{itemize}
 % \end{itemize}-->
 
-\newpage
+{{< pagebreak >}}
+
+::: {#refs}
+
+```{=typst}
+#context biblio-content.final()
+```
+
+:::
+
+{{< pagebreak >}}
