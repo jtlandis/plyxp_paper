@@ -30,7 +30,7 @@ The project enables intuitive manipulation and visualization without requiring u
 _tidyomics_ packages and workflows enable chained data-manipulative operations that resemble the style and framework of tidy data analysis [@Wickham2014] as implemented in _dplyr_ [@dplyr] and other _tidyverse_ [@tidyverse] packages, or chained operations for python _DataFrames_ using _pandas_ [@McKinney2022].
 Due to the popularity of the _tidyverse_ among newer R users, _tidyomics_ increases the accessibility of omic data analysis.
 
-Here, we propose a new expressive grammar for access and manipulation of annotated matrix data and a framework for efficiently performing the operations implied by the syntax.
+Here, we propose a new expressive grammar for access and manipulation of annotated matrix data and a framework for efficiently performing the operations implied by the syntax (@fig-plyxp-syntax).
 Data within the annotated matrix object are lazily bound to a series of environments that are evaluated when the user forces their symbols (@fig-plyxp-diagram).
 Thus, a user has more freedom in how they choose to work with their data.
 We introduce the _plyxp_ R package that implements this grammar, allowing the use of _dplyr_ syntax with the Bioconductor _SummarizedExperiment_ (SE) data class.
@@ -45,7 +45,7 @@ However some complex computations involving simultaneous manipulation of matrix 
 _plyxp_'s use of data masking from the _rlang_ [@rlang] package provides gains in efficiency and is currently used to speed up existing functionality within _tidySummarizedExperiment_.
 Further, _plyxp_ reinforces the structure of the annotated matrix through additional syntax compared to _tidySummarizedExperiment_, often resulting in more verbose, but more specific evaluation.
 
-![Diagram of the data masking structure in *plyxp*. Grey rectangles represent environments. Parent environments are linked to child environments by dotted lines where the circle indicates the parent and the arrow indicates the child environment. Full environment hierarchies are not explicitly shown. Example variable bindings are shown within environments. Data mask contexts are grouped by color where the `assays`, `rows`, and `cols` contexts are represented by the green, purple, and yellow blocks respectively. Red lines show connections from pronouns of one context to environments that are children of other contexts. For brevity, only extended environments from the `assays` context into the `rows` and `cols` contexts are shown. Entry points for each context is indicated by the blue star. Through *rlang*'s tidy evaluation engine, symbols within the data mask are evaluated before searching the calling environment.](./application_note_F1_005.png){#fig-plyxp-diagram}
+![Diagram of the _plyxp_ syntax with _dplyr_ `mutate` function where the `assays`, `rows`, and `cols` are represented by the green, purple, and yellow blocks respectively. Panel A presents how the color coded syntax may act upon an annotated matrix object's contexts to insert new values as represented by the blue blocks. Panel B displays the usage of pronouns between contexts. Pronouns first access the requested data "as is" before reshaping the data for the appropriate context. Black bounding boxes indicate elements of a list.](./application_note_F2_003.png){#fig-plyxp-syntax}
 
 # Syntax
 
@@ -153,19 +153,24 @@ However, we aim that _plyxp_ always be as close to Bioconductor-native speed as 
 %Each mask may be connected to another through a series of _rlang_ pronouns.-->
 
 _plyxp_ enables expressive evaluation by leveraging _rlang_ data masks,
-a series of basic R environments that are evaluated with the _rlang_ tidy evaluation engine [@rlang, @Wickham2019].
-_plyxp_ exploits several utilities from the _rlang_ package, such as lazy evaluation and _rlang_ pronouns, to manage these environments. Here, "lazy evaluation" refers to expressions whose computation is delayed until the value is accessed.
-A developer may choose any number of environments for their data mask that are necessary for their use case.
-With multi-context scenarios that require multiple data masks, as with annotated matrix data, we suggest the final parent ancestor environment of the mask is reserved for binding _rlang_ pronouns.
+a series of basic R environments that are evaluated with the _rlang_ tidy evaluation engine [@rlang; @Wickham2019].
+_plyxp_ exploits several utilities from the _rlang_ package, such as lazy evaluation and _rlang_ pronouns, to manage these environments.
+Here, "lazy evaluation" refers to expressions whose computation is delayed until the value is accessed.
+In _plyxp_, various expressions are lazily bound within the data mask contexts, such as the as-is and reshaped bindings displayed in the extended environments of @fig-plyxp-diagram.
+"_rlang_ pronouns" can be conceptually thought of as a pointer to another environment.
+_rlang_ pronouns are utilized within the _dplyr_ package to disambiguate where to find a symbol, in either the calling environment or user's data with `.env` and `.data` pronouns respectively.
+
+<!-- I'm not sure if we need to describe lazy evaluation too much -->
+<!--A developer may choose any number of environments for their data mask that are necessary for their use case.-->
+
+<!--With multi-context scenarios that require multiple data masks, as with annotated matrix data, we suggest the final parent ancestor environment of the mask is reserved for binding _rlang_ pronouns.
 This suggestion is motivated by R's lexical scoping, which allows variable bindings to be searched through environment parents during evaluation [@rbase].
-Placing pronouns in the final parent of the mask, _i.g._ the final environment prior to the calling environment, will ensure the user's data within the context are prioritized over potential access to other contexts.
-The _rlang_ pronouns can be conceptually thought of as a pointer to another environment.
-_rlang_ pronouns are utilized within the _dplyr_ package to disambiguate where to find a symbol, in either the calling environment or user's data with `.env`and`.data` pronouns respectively.
+Placing pronouns in the final parent of the mask, _i.g._ the final environment prior to the calling environment, will ensure the user's data within the context are prioritized over potential access to other contexts.-->
 
 In _plyxp_, these pronouns are used to connect each context through two pronouns, an `asis` variant and a "size-stable" variant.
-The `asis`variant is to provide the user with access to the actual data stored on the object, as there may be efficient ways to operate on its native shape _e.g._ the row-wise and column-wise matrix operations in base R and _matrixStats_.
+The `asis` variant is to provide the user with access to the actual data stored on the object, as there may be efficient ways to operate on its native shape _e.g._ the row-wise and column-wise matrix operations in base R and _matrixStats_.
 The size-stable variant provides the requested data reshaped to match the size of the current context.
-The size-stable variant is intended to reduce friction from pulling data from other contexts, as there is no guarantee the target data`asis` will match the expected output size of the evaluation context.
+The size-stable variant is intended to reduce friction from pulling data from other contexts, as there is no guarantee the target data `asis` will match the expected output size of the evaluation context.
 
 With annotated matrix data, there are predictable transformations that may be used to guarantee size stability.
 For example, consider requesting row or column data from within the `assays` evaluation context.
@@ -183,7 +188,7 @@ These transformations from "as-is" data to the "size-stable" variant are diagram
 \label{fig:plyxp-diagram}
 \end{figure*}-->
 
-![Diagram of the _plyxp_ syntax with _dplyr_ `mutate` function where the `assays`, `rows`, and `cols` are represented by the green, purple, and yellow blocks respectively. Panel A presents how the color coded syntax may act upon an annotated matrix object's contexts to insert new values as represented by the blue blocks. Panel B displays the usage of pronouns between contexts. Pronouns first access the requested data "as is" before reshaping the data for the appropriate context. Black bounding boxes indicate elements of a list.](./application_note_F2_003.png){#fig-plyxp-syntax}
+![Diagram of the data masking structure in *plyxp*. Grey rectangles represent environments. Parent environments are linked to child environments by dotted lines where the circle indicates the parent and the arrow indicates the child environment. Full environment hierarchies are not explicitly shown. Example variable bindings are shown within environments. Data mask contexts are grouped by color where the `assays`, `rows`, and `cols` contexts are represented by the green, purple, and yellow blocks respectively. Red lines show connections from pronouns of one context to environments that are children of other contexts. For brevity, only extended environments from the `assays` context into the `rows` and `cols` contexts are shown. Entry points for each context is indicated by the blue star. Through *rlang*'s tidy evaluation engine, symbols within the data mask are evaluated before searching the calling environment.](./application_note_F1_005.png){#fig-plyxp-diagram}
 
 ## Grouping
 
@@ -191,13 +196,16 @@ In _dplyr_, specifying groups with `group_by()`{.r} augments the behavior of fur
 _dplyr_ grouping operations traditionally include additional metadata on the target object describing how the data should be partitioned.
 This strategy works well for data structures that are rectangular, but may lead to ambiguities for data structures that deviate from this structure, such as annotated matrix data.
 For tabular data, there is only one dimension (along the rows) in which those data can be partitioned, and no matter how the rows are partitioned, a new table can be constructed from the results.
-This is not true for matrices. One such example would be to attempt to group by matrix values > 100.
+This is not true for matrices.
+One such example would be to attempt to group by matrix values > 100.
 Here, there is no guarantee the partitioning of arbitrary elements of a matrix would create valid sub-matrices.
 It is for this reason that _plyxp_ follows strict heuristics for grouping and only allows groupings that partition rows or columns of the matrix.
 
-This restriction coincides with the natural extension of applying grouping to tabular data from _dplyr_. We may conceptually regard the row data and the column data as independent and grouped as normal tabular structures.
+This restriction coincides with the natural extension of applying grouping to tabular data from _dplyr_.
+We may conceptually regard the row data and the column data as independent and grouped as normal tabular structures.
 The row data and the column data are related to one another through the matrix, and thus the matrix observes all grouping partitions imposed on both dimensions.
-Since the row data and the column data groupings are independent, the `rows` and `cols` contexts only consider their own respective grouping during evaluation. In other words, the `assays` context will always respect groupings about the `rows` and `cols` contexts, but the `rows` context drops any `cols` grouping and `cols` context drops any `rows` grouping.
+Since the row data and the column data groupings are independent, the `rows` and `cols` contexts only consider their own respective grouping during evaluation.
+In other words, the `assays` context will always respect groupings about the `rows` and `cols` contexts, but the `rows` context drops any `cols` grouping and `cols` context drops any `rows` grouping.
 
 <!--%\plyxp also imposes restrictions on when groups are observed during evaluation.
 %Traditionally, the same expression is evaluated for each group specified.
