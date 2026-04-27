@@ -69,6 +69,9 @@ all.equal(
 # especially in grouping scenarios, plyxp begins to overtake
 # native Bioconductor code.
 #
+# NOTE: We do not include comparisons to tidySummarizedExperiment
+#  as summarize will return a tibble and not a SummarizedExperiment
+#
 # Consider the below where we aggregate counts by gene_biotype.
 
 native_group_summarize <- function() {
