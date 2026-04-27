@@ -40,7 +40,7 @@ data |>
 data |>
   mutate(
     rows(
-      gene_ave = rowMeans(.assays_asis$counts),
-      gene_ave2 = map_dbl(.assays$counts, mean)
+      ave = rowMeans(.assays_asis$counts),
+      ave2 = map_dbl(.assays$counts, mean)
     )
   )
