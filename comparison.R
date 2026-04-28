@@ -1,7 +1,8 @@
-library(airway)
+library(airway) # the dataset
 library(tidySummarizedExperiment)
 library(plyxp)
 library(purrr)
+library(bench) # for benchmarking
 data(airway)
 se <- airway
 rowRanges(se) <- NULL
@@ -46,7 +47,7 @@ bench::mark(
   # naive eager tibble conversion
   forced_conversion(se),
   # tidySummarizedExperiment implementation
-  mutate(
+  tidySE = mutate(
     se,
     length = gene_seq_end - gene_seq_start,
     counts_per_bp = counts / length
