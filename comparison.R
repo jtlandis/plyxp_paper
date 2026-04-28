@@ -1,6 +1,7 @@
 library(airway)
 library(tidySummarizedExperiment)
 library(plyxp)
+library(purrr)
 data(airway)
 se <- airway
 rowRanges(se) <- NULL
@@ -64,6 +65,26 @@ all.equal(
   assay(se_update, "counts_per_bp"),
   assay(xp_update, "counts_per_bp")
 )
+
+## Comparison of efficient asis computation vs plyxp reshaping
+
+bench::mark(
+  asis = mutate(xp, rows(ave = rowMeans(.assays_asis$counts))),
+  reshape = mutate(xp, rows(ave = map_dbl(.assays$counts, mean))),
+  min_iterations = 10,
+  check = FALSE
+)
+
+all.equal(
+  mutate(xp, rows(ave = rowMeans(.assays_asis$counts))) |>
+    pull(rows(ave)) |>
+    unname(),
+  mutate(xp, rows(ave = map_dbl(.assays$counts, mean))) |>
+    pull(rows(ave))
+)
+
+
+## Comparison of Complex Grouop Scenarios
 
 # With increasing complexity of the expression,
 # especially in grouping scenarios, plyxp begins to overtake
