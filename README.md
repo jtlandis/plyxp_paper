@@ -1,6 +1,6 @@
 # plyxp_paper
-The files relating to plyxp application note
 
+The files relating to plyxp application note
 
 ## Getting Started
 
@@ -30,5 +30,8 @@ if (!require("bench", quietly = TRUE)) {
 }
 if (!require("purrr", quietly = TRUE)) {
   install.packages("purrr")
+}
+if (!require("vctrs", quietly = TRUE)) {
+  install.packages("vctrs")
 }
 ```
