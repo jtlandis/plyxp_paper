@@ -183,12 +183,14 @@ native_group_summarize_both_optim <- function() {
   # index <- \(obj) Map(\(s, e) s:e, s = start(obj), e = end(obj))
   # row_rle_ind <- index(row_rle)
   # col_rle_ind <- index(col_rle)
-  row_rle_ind <- vctrs::vec_group_loc(rowData(se)$gene_biotype)$loc
-  col_rle_ind <- vctrs::vec_group_loc(colData(se)$cell)$loc
+  row_grp <- vctrs::vec_group_loc(rowData(se)$gene_biotype)
+  row_rle_ind <- row_grp$loc
+  col_grp <- vctrs::vec_group_loc(colData(se)$cell)
+  col_rle_ind <- col_grp$loc
   out <- lapply(
     row_rle_ind,
     \(row_ind) {
-      row_subset <- assay(.se, "counts")[row_ind, , drop = FALSE]
+      row_subset <- assay(se, "counts")[row_ind, , drop = FALSE]
       mat <- vapply(
         col_rle_ind,
         \(col_ind) row_subset[, col_ind, drop = FALSE] |> sum(),
@@ -202,12 +204,14 @@ native_group_summarize_both_optim <- function() {
           n = matrix(n_ * length(row_ind), nrow = 1)
         ),
         rowData = DataFrame(
-          gene_biotype = rowData(.se)$gene_biotype[row_ind][1],
+          gene_biotype = rowData(se)$gene_biotype[row_ind][1],
           n = length(row_ind)
         ),
         colData = DataFrame(
-          cell = runValue(col_rle),
-          n = runLength(col_rle)
+          # cell = runValue(col_rle),
+          # n = runLength(col_rle)
+          cell = col_grp$key,
+          n = lengths(col_rle_ind)
         )
       )
     }
