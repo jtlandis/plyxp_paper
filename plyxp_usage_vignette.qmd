@@ -8,15 +8,20 @@ author:
 date: "`r format(Sys.time(), '%m/%d/%Y')`"
 format:
   pdf:
+    geometry: margin=1in
     toc: true
     number-sections: true
     colorlinks: true
+    include-in-header:
+      text: |
+        \usepackage{etoolbox}
+        \AtBeginEnvironment{verbatim}{\small}
 ---
 
 # Introduction
 
 This document is a modified version of the *plyxp* vignette 
-prepared as a supplement for the *plyxp* paper.
+as a supplement for the *plyxp* paper.
 
 The full and up-to-date *plyxp* vignette can be found here:
 
@@ -35,6 +40,11 @@ Information about *plyxp* can be found at the following two locations:
 
   - <https://github.com/jtlandis/plyxp>
   - <https://bioconductor.org/packages/plyxp>
+
+```{r}
+#| include: false
+options(width = 80)
+```
 
 # plyxp use cases
 
@@ -76,6 +86,7 @@ xp <- new_plyxp(airway)
 ```
 
 ```{r}
+#| size: small
 xp |>
   mutate(log_counts = log1p(counts),
          cols(treated = dex == "trt"),
