@@ -132,7 +132,26 @@ se(xp)
 
 ## Exploring data alongside DE results
 
-Mike will add something here...
+```{r}
+#| message: false
+library(DESeq2)
+dds <- se(xp) |> DESeqDataSet(~cell + dex)
+keep <- rowSums(counts(dds) >= 10) >= 4
+dds <- dds[keep,]
+dds$dex <- factor(dds$dex, levels=c("untrt","trt"))
+dds <- DESeq(dds, test="LRT", reduced=~cell, quiet=TRUE)
+cols_to_save <- c(
+  "gene_id","symbol","gene_biotype","gene_length",
+  "baseMean","dispersion","dex_trt_vs_untrt","LRTPvalue"
+)
+rowData(dds) <- rowData(dds)[,cols_to_save]
+assays(dds) <- assays(dds)[c("counts","mu")]
+```
+
+```{r}
+de_xp <- dds |> new_plyxp()
+de_xp
+```
 
 # Session Info
 
