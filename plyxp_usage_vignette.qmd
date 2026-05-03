@@ -100,8 +100,8 @@ xp |>
 ```{r}
 xp |>
   mutate(
-    cols(size_factor = colSums(.assays_asis$counts)/1e6),
-    scaled_counts = counts/.cols$size_factor,
+    cols(col_sum_per_mil = colSums(.assays_asis$counts)/1e6),
+    scaled_counts = counts/.cols$col_sum_per_mil,
     rows(ave_scl_cts = rowMeans(.assays_asis$scaled_counts))
   )
 ```
