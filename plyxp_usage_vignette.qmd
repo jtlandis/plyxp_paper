@@ -195,7 +195,8 @@ library(ggplot2)
 
 se(de_tpm) |>
   ggplot(aes(x = TPM, y = gene_biotype)) +
-  scale_x_log10()
+  geom_violin(aes(fill = dex), color = NA) +
+  scale_x_log10(labels = scales::label_log())
 ```
 
 ```{r}
@@ -224,7 +225,7 @@ de_tpm |>
     data = as_tibble(de_tpm_summary),
     aes(x = TPM_ave, group = dex), position = position_dodge(width = 1)
   ) +
-  scale_x_log10()
+  scale_x_log10(labels = scales::label_log())
 
 # simple heatmap of similar data
 de_tpm |>
