@@ -177,6 +177,66 @@ with(rowData(de_xp),
 )
 ```
 
+# Compute Log10 TPM
+
+```{r}
+de_tpm <- de_xp |>
+  mutate(
+    RPK = counts / (.rows$gene_length / 1e3),
+    cols(rpk_scale = colSums(.assays_asis$RPK) / 1e6),
+    TPM = RPK / .cols$rpk_scale
+  )
+de_tpm
+```
+
+```{r}
+library(tidySummarizedExperiment)
+library(ggplot2)
+
+se(de_tpm) |>
+  ggplot(aes(x = TPM, y = gene_biotype)) +
+  scale_x_log10()
+```
+
+```{r}
+# significant genes with maximal TPM_ave diff
+# between control and treatment conditions
+de_tpm_summary <- de_tpm |>
+  filter(rows(padj < 0.05)) |>
+  group_by(cols(dex)) |>
+  summarize(TPM_ave = rowMeans(TPM), cols(.samples = unique(dex))) |>
+  group_by(rows(gene_biotype)) |>
+  arrange(rows(- purrr::map_dbl(.assays$TPM_ave, ~ abs(diff(.x))))) |>
+  slice(rows(1:3))
+de_tpm_summary
+```
+
+```{r}
+
+# voilin plot of top 3 TPM_ave differences
+de_tpm |>
+  filter(rows(gene_id %in% rownames(de_tpm_summary))) |>
+  se() |>
+  ggplot(aes(x = TPM, y = gene_id)) +
+  geom_violin(aes(fill = dex), color = NA) +
+  facet_grid(rows = vars(gene_biotype), scales = "free_y") +
+  geom_point(
+    data = as_tibble(de_tpm_summary),
+    aes(x = TPM_ave, group = dex), position = position_dodge(width = 1)
+  ) +
+  scale_x_log10()
+
+# simple heatmap of similar data
+de_tpm |>
+  filter(rows(gene_id %in% rownames(de_tpm_summary))) |>
+  se() |>
+  ggplot(aes(x = dex, y = gene_id)) +
+  geom_tile(aes(fill = log10(TPM))) +
+  facet_grid(rows = vars(gene_biotype), scales = "free_y") +
+  scale_fill_viridis_c()
+
+```
+
 # Session Info
 
 ```{r}
