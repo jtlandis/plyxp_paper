@@ -1,10 +1,10 @@
 ---
 title: "plyxp usage examples"
 author:
-    - name: Justin Landis
-      orcid: 0000-0001-5501-4934
-    - name: Michael Love
-      orcid: 0000-0001-8401-0545
+  - name: Justin Landis
+    orcid: 0000-0001-5501-4934
+  - name: Michael Love
+    orcid: 0000-0001-8401-0545
 date: "`r format(Sys.time(), '%m/%d/%Y')`"
 format:
   pdf:
@@ -20,14 +20,14 @@ format:
 
 # Introduction
 
-This document is a modified version of the *plyxp* vignette 
-as a supplement for the *plyxp* paper.
+This document is a modified version of the _plyxp_ vignette
+as a supplement for the _plyxp_ paper.
 
-The full and up-to-date *plyxp* vignette can be found here:
+The full and up-to-date _plyxp_ vignette can be found here:
 
 <https://jtlandis.github.io/plyxp/articles/plyxp.html>
 
-To install *plyxp* use the following code:
+To install _plyxp_ use the following code:
 
 ```{r}
 #| eval: false
@@ -36,10 +36,10 @@ if (!require("BiocManager", quietly = TRUE))
 BiocManager::install("plyxp")
 ```
 
-Information about *plyxp* can be found at the following two locations:
+Information about _plyxp_ can be found at the following two locations:
 
-  - <https://github.com/jtlandis/plyxp>
-  - <https://bioconductor.org/packages/plyxp>
+- <https://github.com/jtlandis/plyxp>
+- <https://bioconductor.org/packages/plyxp>
 
 ```{r}
 #| include: false
@@ -50,20 +50,20 @@ options(width = 80)
 
 ## Basic manipulation of an RNA-seq dataset
 
-We load the *airway* dataset which contains a *SummarizedExperiment* 
+We load the _airway_ dataset which contains a _SummarizedExperiment_
 object with gene-level counts across eight samples.
-The *airway* dataset summarizes an RNA-Seq experiment on four human airway 
+The _airway_ dataset summarizes an RNA-Seq experiment on four human airway
 smooth muscle cell lines, both as controls and treated with dexamethasone.
-Details on the gene model and read counting procedure are provided in the *airway* 
+Details on the gene model and read counting procedure are provided in the _airway_
 package vignette from Bioconductor.
-The citation for the experiment is: 
+The citation for the experiment is:
 
-> Himes BE, Jiang X, Wagner P, Hu R, Wang Q, Klanderman B, Whitaker RM, 
-> Duan Q, Lasky-Su J, Nikolos C, Jester W, Johnson M, Panettieri R Jr, 
-> Tantisira KG, Weiss ST, Lu Q. 
-> "RNA-Seq Transcriptome Profiling Identifies CRISPLD2 as a Glucocorticoid 
+> Himes BE, Jiang X, Wagner P, Hu R, Wang Q, Klanderman B, Whitaker RM,
+> Duan Q, Lasky-Su J, Nikolos C, Jester W, Johnson M, Panettieri R Jr,
+> Tantisira KG, Weiss ST, Lu Q.
+> "RNA-Seq Transcriptome Profiling Identifies CRISPLD2 as a Glucocorticoid
 > Responsive Gene that Modulates Cytokine Function in Airway Smooth Muscle Cells."
-> *PLOS One*. 2014 Jun 13;9(6):e99625. PMID: 24926665. GEO: GSE52778.
+> _PLOS One_. 2014 Jun 13;9(6):e99625. PMID: 24926665. GEO: GSE52778.
 
 ```{r}
 #| message: false
@@ -124,7 +124,7 @@ summary |>
   as_tibble(rownames = "type")
 ```
 
-To extract the *SummarizedExperiment*:
+To extract the _SummarizedExperiment_:
 
 ```{r}
 se(xp)
@@ -147,7 +147,7 @@ filt_xp <- xp |>
 ```{r}
 #| message: false
 library(DESeq2)
-dds <- se(filt_xp) |> 
+dds <- se(filt_xp) |>
   DESeqDataSet(~cell + dex) |>
   DESeq(test="LRT", reduced=~cell, quiet=TRUE)
 ```
@@ -172,7 +172,7 @@ rowData(de_xp)
 ```
 
 ```{r}
-with(rowData(de_xp), 
+with(rowData(de_xp),
   table(lfc_sign, sig_5pct = padj < .05)
 )
 ```
