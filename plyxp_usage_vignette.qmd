@@ -292,7 +292,7 @@ de_tpm |>
   se() |>
   ggplot(aes(x = dex, y = symbol)) +
   geom_tile(aes(fill = log10(TPM + 0.1))) +
-  facet_grid(rows = vars(gene_biotype), scales = "free_y") +
+  facet_grid(rows = vars(gene_biotype), cols = vars(cell), scales = "free_y") +
   scale_fill_viridis_c()
 ```
 
