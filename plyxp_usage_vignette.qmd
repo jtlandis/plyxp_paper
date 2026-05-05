@@ -276,7 +276,7 @@ de_tpm |>
   se() |>
   ggplot(aes(x = TPM + 0.1, y = symbol, group = dex, color = dex)) +
   stat_summary(
-    fun.min = min, fun.max = max, fun = median, 
+    fun.min = min, fun.max = max, fun = mean, 
     geom = "pointrange", position = position_dodge(width = 1)
   ) +
   facet_grid(rows = vars(gene_biotype), scales = "free_y") +
