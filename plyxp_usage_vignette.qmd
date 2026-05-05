@@ -257,7 +257,7 @@ between treatment and control groups.
 
 This can be done in two ways, since we know there is only two treatment groups,
 we may use `purrr::map_dbl` on the reshaped variant of `ave_TPM`, which returns
-a list of row slices, or in other words, a list of $1 \times 2$ matrices.
+a list of row slices, or in other words, a list of length 2 numeric vectors.
 
 ```{r}
 
@@ -267,7 +267,6 @@ de_tpm_summary |>
     purrr::map_dbl(
       # list of 1x2 matrices
       .assays$ave_TPM,
-      # abs(.x[2] - .x[1])
       ~ abs(diff(.x))
     ) |>
       dplyr::desc()
