@@ -46,16 +46,18 @@ Information about _plyxp_ can be found at the following two locations:
 options(width = 80)
 ```
 
-# plyxp use cases
-
-## Basic manipulation of an RNA-seq dataset
+# Load an RNA-seq data object
 
 We load the _airway_ dataset which contains a _SummarizedExperiment_
 object with gene-level counts across eight samples.
 The _airway_ dataset summarizes an RNA-Seq experiment on four human airway
 smooth muscle cell lines, both as controls and treated with dexamethasone.
 Details on the gene model and read counting procedure are provided in the _airway_
-package vignette from Bioconductor.
+package vignette from Bioconductor. For more details on construction of
+_SummarizedExperiment_ (SE) objects, see the vignette for the package
+of the same name, or the _tximeta_ package which can construct these objects
+from common RNA-seq quantification tools.
+
 The citation for the experiment is:
 
 > Himes BE, Jiang X, Wagner P, Hu R, Wang Q, Klanderman B, Whitaker RM,
@@ -82,11 +84,22 @@ rowData(airway)$gene_length <- sum(width(reduce(rowRanges(airway))))
 rowRanges(airway) <- NULL # ranges not needed for this demo, simplifying...
 ```
 
+# Basic manipulation of RNA-seq data
+
+We initialize by calling `new_plyxp()` on an SE object.
+This is a simple wrapper class that contains the SE, and
+allows for us to change the behavior of the dplyr verbs
+when they are applied to our new object.
+
 ```{r}
 #| message: false
 library(plyxp)
 xp <- new_plyxp(airway)
+class(xp)
 ```
+
+We can perform one or more operations, modifying the 
+contents of the object:
 
 ```{r}
 xp |>
@@ -97,6 +110,10 @@ xp |>
   )
 ```
 
+The above computations only made use of data
+_within_ each context. Using pronouns, we can also
+access data _across_ contexts:
+
 ```{r}
 xp |>
   mutate(
@@ -106,6 +123,9 @@ xp |>
   )
 ```
 
+We can also perform grouping operations, e.g. here grouping by the 
+gene biotype, and computing the sum of counts for each sample:
+
 ```{r}
 summary <- xp |>
   group_by(rows(gene_biotype)) |>
@@ -114,8 +134,17 @@ summary <- xp |>
     # may rename rows with .features
     rows(.features = unique(gene_biotype))
   )
-summary |> rowData()
 ```
+
+Filtering to a single sample, and examining the first six biotypes:
+
+```{r}
+summary |> 
+  filter(cols(.samples == "SRR1039508")) |>
+  head()
+```
+
+We can convert the SE to tibble after selecting one of the assays:
 
 ```{r}
 library(tibble)
@@ -124,13 +153,14 @@ summary |>
   as_tibble(rownames = "type")
 ```
 
-To extract the _SummarizedExperiment_:
+To extract the _SummarizedExperiment_ from a 
+_PlySummarizedExperiment_ we just use the `se()` function:
 
 ```{r}
 se(xp)
 ```
 
-## Exploring data alongside DE results
+# Exploring data alongside DE results
 
 ```{r}
 # define minimal expression as count >= 10
@@ -177,7 +207,7 @@ with(rowData(de_xp),
 )
 ```
 
-# Compute Log10 TPM
+# Computing and plotting abundance
 
 ```{r}
 de_tpm <- de_xp |>
@@ -198,6 +228,8 @@ se(de_tpm) |>
   geom_violin(aes(fill = dex), color = NA) +
   scale_x_log10(labels = scales::label_log())
 ```
+
+# Grouping and summarizing abundance over samples
 
 ```{r}
 # significant genes with maximal TPM_ave diff
