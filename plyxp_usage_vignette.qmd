@@ -296,6 +296,10 @@ de_tpm_summary_slice <- de_tpm_summary |>
 de_tpm_summary_slice
 ```
 
+For completeness, we note this difference could also be computed on the reshaped data, 
+`map_dbl(.assays$ave_TPM, ~ .x["trt"] - .x["untrt"])`, 
+though the matrix subtraction above is expected to be faster.
+
 Finally, we can make a plot of top 3 TPM differences per biotype, with
 a point for the median and a line representing the range within the group:
 
