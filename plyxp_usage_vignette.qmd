@@ -255,11 +255,42 @@ Next we group the data by gene biotype and select the top three
 genes per biotype by the largest `TPM_ave` difference
 between treatment and control groups.
 
+This can be done in two ways, since we know there is only two treatment groups,
+we may use `purrr::map_dbl` on the reshaped variant of `ave_TPM`, which returns
+a list of row slices, or in other words, a list of $1 \times 2$ matrices.
+
+```{r}
+
+de_tpm_summary |>
+  group_by(rows(gene_biotype)) |>
+  arrange(rows(
+    purrr::map_dbl(
+      # list of 1x2 matrices
+      .assays$ave_TPM,
+      # abs(.x[2] - .x[1])
+      ~ abs(diff(.x))
+    ) |>
+      dplyr::desc()
+  )) |>
+  slice(rows(1:3))
+```
+
+The above may not always be preferable without first knowing the order of
+the summarized columns. The summarized dimensions are ordered based on the
+appearance of the values from the original data.
+Alternatively, if you had more than 2 treatment groups and/or needed to be more
+specific on which columns were used in the difference, then you can use
+the `.assays_asis` variant as shown below.
+
 ```{r}
 de_tpm_summary_slice <- de_tpm_summary |>
   group_by(rows(gene_biotype)) |>
   arrange(rows(
-    dplyr::desc( purrr::map_dbl( .assays$ave_TPM, ~ abs(diff(.x)) ) )
+    {
+      mat <- .assays_asis$ave_TPM
+      abs(mat[,"trt"] - mat[,"untrt"])
+    } |>
+     dplyr::desc()
   )) |>
   slice(rows(1:3))
 
