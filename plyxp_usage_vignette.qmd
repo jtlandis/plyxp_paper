@@ -98,7 +98,7 @@ xp <- new_plyxp(airway)
 class(xp)
 ```
 
-We can perform one or more operations, modifying the 
+We can perform one or more operations, modifying the
 contents of the object:
 
 ```{r}
@@ -123,7 +123,7 @@ xp |>
   )
 ```
 
-We can also perform grouping operations, e.g. here grouping by the 
+We can also perform grouping operations, e.g. here grouping by the
 gene biotype, and computing the sum of counts for each sample:
 
 ```{r}
@@ -139,7 +139,7 @@ summary <- xp |>
 Filtering to a single sample, and examining the first six biotypes:
 
 ```{r}
-summary |> 
+summary |>
   filter(cols(.samples == "SRR1039508")) |>
   head()
 ```
@@ -154,7 +154,7 @@ summary |>
   head()
 ```
 
-To extract the _SummarizedExperiment_ from a 
+To extract the _SummarizedExperiment_ from a
 _PlySummarizedExperiment_ we just use the `se()` function:
 
 ```{r}
@@ -229,7 +229,7 @@ library(tidySummarizedExperiment)
 library(ggplot2)
 
 biotypes <- c("protein_coding", "lincRNA", "antisense")
-de_tpm |> 
+de_tpm |>
   filter(rows(gene_biotype %in% biotypes)) |>
   se() |>
   ggplot(aes(x = TPM + 0.1, y = gene_biotype)) +
@@ -239,7 +239,7 @@ de_tpm |>
 
 # Grouping and summarizing abundance over samples
 
-First we filter to significant genes and group samples by 
+First we filter to significant genes and group samples by
 condition group, the summarize the average TPM in each group.
 
 ```{r}
@@ -252,7 +252,7 @@ de_tpm_summary
 ```
 
 Next we group the data by gene biotype and select the top three
-genes per biotype by the largest `TPM_ave` difference 
+genes per biotype by the largest `TPM_ave` difference
 between treatment and control groups.
 
 ```{r}
@@ -266,7 +266,7 @@ de_tpm_summary_slice <- de_tpm_summary |>
 de_tpm_summary_slice
 ```
 
-Finally, we can make a plot of top 3 TPM differences per biotype, with 
+Finally, we can make a plot of top 3 TPM differences per biotype, with
 a point for the median and a line representing the range within the group:
 
 ```{r}
@@ -276,7 +276,7 @@ de_tpm |>
   se() |>
   ggplot(aes(x = TPM + 0.1, y = symbol, group = dex, color = dex)) +
   stat_summary(
-    fun.min = min, fun.max = max, fun = mean, 
+    fun.min = min, fun.max = max, fun = mean,
     geom = "pointrange", position = position_dodge(width = 1)
   ) +
   facet_grid(rows = vars(gene_biotype), scales = "free_y") +
