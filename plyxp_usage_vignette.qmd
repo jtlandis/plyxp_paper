@@ -47,6 +47,9 @@ Information about _plyxp_ can be found at the following two locations:
 ```{r}
 #| include: false
 options(width = 80)
+# comment the line below if unicode is not
+# available for render target
+options(cli.unicode = TRUE)
 ```
 
 # Load an RNA-seq data object
