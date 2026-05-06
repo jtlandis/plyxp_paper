@@ -59,6 +59,7 @@ bench::mark(
   # Rprofiler parsing works within `bench`.
   memory = FALSE,
   # protect against cold starts
+  min_time = 2,
   min_iterations = 10
 )
 
@@ -72,6 +73,7 @@ all.equal(
 bench::mark(
   asis = mutate(xp, rows(ave = rowMeans(.assays_asis$counts))),
   reshape = mutate(xp, rows(ave = map_dbl(.assays$counts, mean))),
+  min_time = 2,
   min_iterations = 10,
   check = FALSE
 )

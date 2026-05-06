@@ -56,7 +56,7 @@ object with gene-level counts across eight samples.
 The _airway_ dataset summarizes an RNA-Seq experiment on four human airway
 smooth muscle cell lines, both as controls and treated with dexamethasone.
 Details on the gene model and read counting procedure are provided in the _airway_
-package vignette from Bioconductor. For more details on construction of
+Bioconductor package vignette. For more details on construction of
 _SummarizedExperiment_ (SE) objects, see the vignette for the package
 of the same name, or the _tximeta_ package which can construct these objects
 from output of common RNA-seq quantification tools.
@@ -196,7 +196,8 @@ dds <- se(filt_xp) |>
   DESeq(test="LRT", reduced=~cell, quiet=TRUE)
 ```
 
-We pick a subset of results columns to continue analysis with:
+We pick a subset of the columns of results in the `rowData` 
+to use in further analysis:
 
 ```{r}
 cols_to_save <- c(
@@ -237,10 +238,10 @@ with(rowData(de_xp),
 In the following section, we compute abundance as 
 _transcripts per million_ (TPM). This involves scaling the
 observed counts by the gene length 
-(here we have access to the number of exonic basepairs), 
+(here we have access to the number of exonic base pairs), 
 and then dividing by the column sum to account for sequencing depth
 differences. The resulting matrix is multiplied by 1 million, 
-such that the columns add to 1 million in the end.
+such that the columns sum to 1 million.
 
 ```{r}
 de_tpm <- de_xp |>
@@ -296,12 +297,12 @@ Next we group the data by gene biotype and select the top three
 genes per biotype by the largest `ave_TPM` difference 
 between treatment and control groups.
 
-This can be done in two ways, since we know there is only two treatment groups,
+This can be done in two ways: since we know there are only two treatment groups,
 we may use `purrr::map_dbl` on the reshaped variant of `ave_TPM`, which returns
-a list of row slices, or in other words, a list of length 2 numeric vectors.
+a list of the rows of the `ave_TPM` matrix. In other words, the reshaped data
+will be a list of vectors of length 2 (the average TPM for the two groups).
 
 ```{r}
-
 de_tpm_summary |>
   group_by(rows(gene_biotype)) |>
   arrange(rows(
@@ -315,11 +316,10 @@ de_tpm_summary |>
   slice(rows(1:3))
 ```
 
-The above may not always be preferable without first knowing the order of
-the summarized columns. The summarized dimensions are ordered based on the
-appearance of the values from the original data.
+The above approach may not always be ideal if the order of the 
+summarized columns is not known in advance.
 Alternatively, if you had more than 2 treatment groups and/or needed to be more
-specific on which columns were used in the difference, then you can use
+specific on which columns were used in the difference, then you could use
 the `.assays_asis` variant as shown below.
 
 ```{r}
@@ -337,7 +337,7 @@ de_tpm_summary_slice <- de_tpm_summary |>
 de_tpm_summary_slice
 ```
 
-For completeness, we note this difference could also be computed on the reshaped data, 
+For completeness, we note that this difference could also be computed on the reshaped data, 
 `map_dbl(.assays$ave_TPM, ~ .x["trt"] - .x["untrt"])`, 
 though the matrix subtraction above is expected to be faster.
 
