@@ -286,6 +286,8 @@ with the following code:
 
 ```{r}
 #| lst-label: lst-de-summary1
+#| lst-cap: plyxp average TPM per condition
+
 de_tpm_summary <- de_tpm |>
   filter(rows(padj < 0.05)) |>
   group_by(cols(dex)) |>
