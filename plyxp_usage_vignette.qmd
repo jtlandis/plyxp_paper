@@ -297,12 +297,13 @@ de_tpm_summary
 Next we group the data by gene biotype and select the top three
 genes according to the largest `ave_TPM` difference between
 treatment and control samples. This gives us back three genes
-for each gene biotype.
+for each gene biotype (except for miRNA which only has two significant 
+genes).
 
 This can be done in two ways: since we know there are only two treatment groups,
 we may use `purrr::map_dbl` on the reshaped variant of `ave_TPM`, which returns
 a list of the rows of the `ave_TPM` matrix. In other words, the reshaped data
-will be a list of vectors of length 2 (the average TPM for samples in each
+will be a list of vectors of length two (the average TPM for samples in each
 treatment group).
 
 ```{r}
