@@ -297,7 +297,7 @@ de_tpm_summary
 Next we group the data by gene biotype and select the top three
 genes according to the largest `ave_TPM` difference between
 treatment and control samples. This gives us back three genes
-for each gene biotype (except for miRNA which only has two significant 
+for each gene biotype (except for miRNA which only has two significant
 genes).
 
 This can be done in two ways: since we know there are only two treatment groups,
