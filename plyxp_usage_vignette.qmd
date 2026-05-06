@@ -285,6 +285,7 @@ condition group, then we can summarize the average TPM in each group,
 with the following code:
 
 ```{r}
+#| lst-label: lst-de-summary1
 de_tpm_summary <- de_tpm |>
   filter(rows(padj < 0.05)) |>
   group_by(cols(dex)) |>
@@ -320,9 +321,9 @@ de_tpm_summary |>
 
 The above approach may not always be ideal if the order of the
 summarized columns is not known in advance.
-Alternatively, if you had more than two treatment groups and/or needed to be more
-specific on which columns were used in the difference, then you could use
-the `.assays_asis` variant as shown below.
+However, because we had renamed the column dimension in @lst-de-summary1,
+we may use the column names as a specific index.
+For example, you could use the `.assays_asis` variant as shown below.
 
 ```{r}
 de_tpm_summary_slice <- de_tpm_summary |>
