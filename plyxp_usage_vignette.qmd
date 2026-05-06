@@ -364,7 +364,7 @@ de_tpm |>
   scale_x_log10(labels = scales::label_log())
 ```
 
-We can also make a simple heatmap, also showing the value per
+We can make a simple heatmap, additionally showing the value per 
 donor cell line.
 
 ```{r}
