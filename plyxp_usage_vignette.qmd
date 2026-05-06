@@ -168,7 +168,7 @@ se(xp)
 
 Below we demonstrate running differential expression (DE)
 analysis on the SE object, and then manipulating the SE
-alongside results: p-values and log2 fold changes (LFC).
+alongside results including p-values and log2 fold changes (LFC).
 
 ```{r}
 # define minimal expression as count >= 10
@@ -222,7 +222,7 @@ de_xp <- de_xp |>
     padj = p.adjust(LRTPvalue, method="BH"),
     lfc_sign = sign(dex_trt_vs_untrt)
   ))
-rowData(de_xp)
+rowData(de_xp) |> head()
 ```
 
 Getting a sense of the number of genes at FDR < 5%:
@@ -277,8 +277,8 @@ de_tpm |>
 
 # Grouping and summarizing abundance over samples
 
-Suppose we want to make some plots focusing on average
-abundance in each treatment group, focusing on the genes
+Suppose we want to make some plots of the abundance (TPM) 
+in each treatment group, focusing on the genes
 with evidence of differential expression.
 First we filter to significant genes and group samples by 
 condition group, then we can summarize the average TPM in each group, 
@@ -294,13 +294,15 @@ de_tpm_summary
 ```
 
 Next we group the data by gene biotype and select the top three
-genes per biotype by the largest `ave_TPM` difference 
-between treatment and control groups.
+genes according to the largest `ave_TPM` difference between 
+treatment and control samples. This gives us back three genes
+for each gene biotype.
 
 This can be done in two ways: since we know there are only two treatment groups,
 we may use `purrr::map_dbl` on the reshaped variant of `ave_TPM`, which returns
 a list of the rows of the `ave_TPM` matrix. In other words, the reshaped data
-will be a list of vectors of length 2 (the average TPM for the two groups).
+will be a list of vectors of length 2 (the average TPM for samples in each 
+treatment group).
 
 ```{r}
 de_tpm_summary |>
@@ -318,7 +320,7 @@ de_tpm_summary |>
 
 The above approach may not always be ideal if the order of the 
 summarized columns is not known in advance.
-Alternatively, if you had more than 2 treatment groups and/or needed to be more
+Alternatively, if you had more than two treatment groups and/or needed to be more
 specific on which columns were used in the difference, then you could use
 the `.assays_asis` variant as shown below.
 
@@ -358,7 +360,8 @@ de_tpm |>
   scale_x_log10(labels = scales::label_log())
 ```
 
-We can also make a simple heatmap of similar data:
+We can also make a simple heatmap, also showing the value per 
+donor cell line.
 
 ```{r}
 de_tpm |>
