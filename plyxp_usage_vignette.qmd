@@ -312,7 +312,8 @@ de_tpm_summary |>
   group_by(rows(gene_biotype)) |>
   arrange(rows(
     purrr::map_dbl(
-      # list of 1x2 matrices
+      # list of length 2
+      # numeric vectors
       .assays$ave_TPM,
       ~ abs(diff(.x))
     ) |>
