@@ -21,7 +21,7 @@ format:
 # Introduction
 
 This document is a modified version of the _plyxp_ vignette
-as a supplement for the _plyxp_ paper. The `.qmd` file that 
+as a supplement for the _plyxp_ paper. The `.qmd` file that
 generated this document can be found here:
 
 <https://github.com/jtlandis/plyxp_paper>
@@ -90,7 +90,7 @@ rowRanges(airway) <- NULL # ranges not needed for this demo, simplifying...
 # Basic manipulation of RNA-seq data
 
 We initialize the dataset for use with _plyxp_ by calling `new_plyxp()` on an SE object.
-This creates a _PlySummarizedExperiment_, a simple wrapper class that contains the SE, 
+This creates a _PlySummarizedExperiment_, a simple wrapper class that contains the SE,
 and changes the behavior of the dplyr verbs when they are applied to our new object.
 
 ```{r}
@@ -196,7 +196,7 @@ dds <- se(filt_xp) |>
   DESeq(test="LRT", reduced=~cell, quiet=TRUE)
 ```
 
-We pick a subset of the columns of results in the `rowData` 
+We pick a subset of the columns of results in the `rowData`
 to use in further analysis:
 
 ```{r}
@@ -235,12 +235,12 @@ with(rowData(de_xp),
 
 # Computing and plotting abundance
 
-In the following section, we compute abundance as 
+In the following section, we compute abundance as
 _transcripts per million_ (TPM). This involves scaling the
-observed counts by the gene length 
-(here we have access to the number of exonic base pairs), 
+observed counts by the gene length
+(here we have access to the number of exonic base pairs),
 and then dividing by the column sum to account for sequencing depth
-differences. The resulting matrix is multiplied by 1 million, 
+differences. The resulting matrix is multiplied by 1 million,
 such that the columns sum to 1 million.
 
 ```{r}
@@ -255,9 +255,9 @@ colSums(assay(de_tpm, "TPM"))
 ```
 
 We can directly pipe an SE object into a `ggplot()` command
-after loading _tidySummarizedExperiment_. 
-We can use this to plot our newly computed TPM values 
-across genes and samples, splitting by gene biotype, 
+after loading _tidySummarizedExperiment_.
+We can use this to plot our newly computed TPM values
+across genes and samples, splitting by gene biotype,
 and by the treatment group.
 
 ```{r}
@@ -277,14 +277,15 @@ de_tpm |>
 
 # Grouping and summarizing abundance over samples
 
-Suppose we want to make some plots of the abundance (TPM) 
+Suppose we want to make some plots of the abundance (TPM)
 in each treatment group, focusing on the genes
 with evidence of differential expression.
-First we filter to significant genes and group samples by 
-condition group, then we can summarize the average TPM in each group, 
+First we filter to significant genes and group samples by
+condition group, then we can summarize the average TPM in each group,
 with the following code:
 
 ```{r}
+#| lst-label: lst-de-summary1
 de_tpm_summary <- de_tpm |>
   filter(rows(padj < 0.05)) |>
   group_by(cols(dex)) |>
@@ -294,14 +295,14 @@ de_tpm_summary
 ```
 
 Next we group the data by gene biotype and select the top three
-genes according to the largest `ave_TPM` difference between 
+genes according to the largest `ave_TPM` difference between
 treatment and control samples. This gives us back three genes
 for each gene biotype.
 
 This can be done in two ways: since we know there are only two treatment groups,
 we may use `purrr::map_dbl` on the reshaped variant of `ave_TPM`, which returns
 a list of the rows of the `ave_TPM` matrix. In other words, the reshaped data
-will be a list of vectors of length 2 (the average TPM for samples in each 
+will be a list of vectors of length 2 (the average TPM for samples in each
 treatment group).
 
 ```{r}
@@ -318,11 +319,11 @@ de_tpm_summary |>
   slice(rows(1:3))
 ```
 
-The above approach may not always be ideal if the order of the 
+The above approach may not always be ideal if the order of the
 summarized columns is not known in advance.
-Alternatively, if you had more than two treatment groups and/or needed to be more
-specific on which columns were used in the difference, then you could use
-the `.assays_asis` variant as shown below.
+However, because we had renamed the column dimension in @lst-de-summary1,
+we may use the column names as a specific index.
+For example, you could use the `.assays_asis` variant as shown below.
 
 ```{r}
 de_tpm_summary_slice <- de_tpm_summary |>
@@ -330,7 +331,7 @@ de_tpm_summary_slice <- de_tpm_summary |>
   arrange(rows(
     {
       mat <- .assays_asis$ave_TPM
-      abs(mat[,"trt"] - mat[,"untrt"])
+      abs(mat[, "trt"] - mat[, "untrt"])
     } |>
      dplyr::desc()
   )) |>
@@ -339,11 +340,11 @@ de_tpm_summary_slice <- de_tpm_summary |>
 de_tpm_summary_slice
 ```
 
-For completeness, we note that this difference could also be computed on the reshaped data, 
-`map_dbl(.assays$ave_TPM, ~ .x["trt"] - .x["untrt"])`, 
+For completeness, we note that this difference could also be computed on the reshaped data,
+`map_dbl(.assays$ave_TPM, ~ .x["trt"] - .x["untrt"])`,
 though the matrix subtraction above is expected to be faster.
 
-We can make a plot of top 3 TPM differences per biotype, with 
+We can make a plot of top 3 TPM differences per biotype, with
 a point for the mean and a line representing the range within the group:
 
 ```{r}
