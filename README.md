@@ -23,6 +23,10 @@ if (!require("airway", quietly = TRUE)) {
 if (!require("tidySummarizedExperiment", quietly = TRUE)) {
    BiocManager::install("tidySummarizedExperiment")
 }
+if (!require("DESeq2", quietly = TRUE)) {
+  # required for vignette only
+  BiocManager::install("DESeq2")
+}
 
 # CRAN package for profiling
 if (!require("bench", quietly = TRUE)) {
