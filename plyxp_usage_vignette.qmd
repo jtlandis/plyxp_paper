@@ -97,7 +97,7 @@ xp <- new_plyxp(airway)
 class(xp)
 ```
 
-We can perform one or more operations, modifying the 
+We can perform one or more operations, modifying the
 contents of the object:
 
 ```{r}
@@ -122,7 +122,7 @@ xp |>
   )
 ```
 
-We can also perform grouping operations, e.g. here grouping by the 
+We can also perform grouping operations, e.g. here grouping by the
 gene biotype, and computing the sum of counts for each sample:
 
 ```{r}
@@ -138,7 +138,7 @@ summary <- xp |>
 Filtering to a single sample, and examining the first six biotypes:
 
 ```{r}
-summary |> 
+summary |>
   filter(cols(.samples == "SRR1039508")) |>
   head()
 ```
@@ -154,7 +154,7 @@ summary |>
   head()
 ```
 
-To extract the _SummarizedExperiment_ from a 
+To extract the _SummarizedExperiment_ from a
 _PlySummarizedExperiment_ we just use the `se()` function:
 
 ```{r}
@@ -263,7 +263,7 @@ library(tidySummarizedExperiment)
 library(ggplot2)
 
 biotypes <- c("protein_coding", "lincRNA", "antisense")
-de_tpm |> 
+de_tpm |>
   filter(rows(gene_biotype %in% biotypes)) |>
   se() |>
   ggplot(aes(x = TPM + 0.1, y = gene_biotype)) +
@@ -293,16 +293,50 @@ Next we group the data by gene biotype and select the top three
 genes per biotype by the largest `ave_TPM` difference 
 between treatment and control groups.
 
+This can be done in two ways, since we know there is only two treatment groups,
+we may use `purrr::map_dbl` on the reshaped variant of `ave_TPM`, which returns
+a list of row slices, or in other words, a list of length 2 numeric vectors.
+
+```{r}
+
+de_tpm_summary |>
+  group_by(rows(gene_biotype)) |>
+  arrange(rows(
+    purrr::map_dbl(
+      # list of 1x2 matrices
+      .assays$ave_TPM,
+      ~ abs(diff(.x))
+    ) |>
+      dplyr::desc()
+  )) |>
+  slice(rows(1:3))
+```
+
+The above may not always be preferable without first knowing the order of
+the summarized columns. The summarized dimensions are ordered based on the
+appearance of the values from the original data.
+Alternatively, if you had more than 2 treatment groups and/or needed to be more
+specific on which columns were used in the difference, then you can use
+the `.assays_asis` variant as shown below.
+
 ```{r}
 de_tpm_summary_slice <- de_tpm_summary |>
   group_by(rows(gene_biotype)) |>
   arrange(rows(
-    dplyr::desc( purrr::map_dbl( .assays$ave_TPM, ~ abs(diff(.x)) ) )
+    {
+      mat <- .assays_asis$ave_TPM
+      abs(mat[,"trt"] - mat[,"untrt"])
+    } |>
+     dplyr::desc()
   )) |>
   slice(rows(1:3))
 
 de_tpm_summary_slice
 ```
+
+For completeness, we note this difference could also be computed on the reshaped data, 
+`map_dbl(.assays$ave_TPM, ~ .x["trt"] - .x["untrt"])`, 
+though the matrix subtraction above is expected to be faster.
 
 We can make a plot of top 3 TPM differences per biotype, with 
 a point for the mean and a line representing the range within the group:
@@ -314,7 +348,7 @@ de_tpm |>
   se() |>
   ggplot(aes(x = TPM + 0.1, y = symbol, group = dex, color = dex)) +
   stat_summary(
-    fun.min = min, fun.max = max, fun = mean, 
+    fun.min = min, fun.max = max, fun = mean,
     geom = "pointrange", position = position_dodge(width = 1)
   ) +
   facet_grid(rows = vars(gene_biotype), scales = "free_y") +
@@ -330,7 +364,7 @@ de_tpm |>
   se() |>
   ggplot(aes(x = dex, y = symbol)) +
   geom_tile(aes(fill = log10(TPM + 0.1))) +
-  facet_grid(rows = vars(gene_biotype), scales = "free_y") +
+  facet_grid(rows = vars(gene_biotype), cols = vars(cell), scales = "free_y") +
   scale_fill_viridis_c()
 ```
 
