@@ -56,7 +56,7 @@ Details on the gene model and read counting procedure are provided in the _airwa
 package vignette from Bioconductor. For more details on construction of
 _SummarizedExperiment_ (SE) objects, see the vignette for the package
 of the same name, or the _tximeta_ package which can construct these objects
-from common RNA-seq quantification tools.
+from output of common RNA-seq quantification tools.
 
 The citation for the experiment is:
 
@@ -86,10 +86,9 @@ rowRanges(airway) <- NULL # ranges not needed for this demo, simplifying...
 
 # Basic manipulation of RNA-seq data
 
-We initialize by calling `new_plyxp()` on an SE object.
-This is a simple wrapper class that contains the SE, and
-allows for us to change the behavior of the dplyr verbs
-when they are applied to our new object.
+We initialize the dataset for use with _plyxp_ by calling `new_plyxp()` on an SE object.
+This creates a _PlySummarizedExperiment_, a simple wrapper class that contains the SE, 
+and changes the behavior of the dplyr verbs when they are applied to our new object.
 
 ```{r}
 #| message: false
@@ -144,7 +143,8 @@ summary |>
   head()
 ```
 
-We can convert the SE to tibble after selecting one of the assays:
+We can convert the SE to tibble after selecting one of the assays
+(in this case there is only one assay):
 
 ```{r}
 library(tibble)
@@ -163,6 +163,10 @@ se(xp)
 
 # Exploring data alongside DE results
 
+Below we demonstrate running differential expression (DE)
+analysis on the SE object, and then manipulating the SE
+alongside results: p-values and log2 fold changes (LFC).
+
 ```{r}
 # define minimal expression as count >= 10
 filt_xp <- xp |>
@@ -175,6 +179,12 @@ filt_xp <- xp |>
   ))
 ```
 
+The following code passes the SE object to the _DESeq2_
+functions, creating a _DESeqDataSet_ and then running
+a likelihood ratio test. This is standard R/Bioconductor
+code, showing that _plyxp_ can easily be used alongside
+other Bioconductor packages.
+
 ```{r}
 #| message: false
 library(DESeq2)
@@ -182,6 +192,8 @@ dds <- se(filt_xp) |>
   DESeqDataSet(design=~cell + dex) |>
   DESeq(test="LRT", reduced=~cell, quiet=TRUE)
 ```
+
+We pick a subset of results columns to continue analysis with:
 
 ```{r}
 cols_to_save <- c(
@@ -191,6 +203,13 @@ cols_to_save <- c(
 rowData(dds) <- rowData(dds)[,cols_to_save]
 assays(dds) <- assays(dds)[c("counts","mu")]
 ```
+
+We can easily pass back into _plyxp_ by wrapping
+the _DESeqDataSet_ as a _PlySummarizedExperiment_.
+This strategy works for any classes that descend
+from SE (e.g. _DESeqDataSet_, _SingleCellExperiment_, etc.).
+
+We then compute adjusted p-values and the sign of the LFC.
 
 ```{r}
 de_xp <- dds |> new_plyxp()
@@ -202,6 +221,8 @@ de_xp <- de_xp |>
 rowData(de_xp)
 ```
 
+Getting a sense of the number of genes at FDR < 5%:
+
 ```{r}
 with(rowData(de_xp),
   table(lfc_sign, sig_5pct = padj < .05)
@@ -210,6 +231,14 @@ with(rowData(de_xp),
 
 # Computing and plotting abundance
 
+In the following section, we compute abundance as 
+_transcripts per million_ (TPM). This involves scaling the
+observed counts by the gene length 
+(here we have access to the number of exonic basepairs), 
+and then dividing by the column sum to account for sequencing depth
+differences. The resulting matrix is multiplied by 1 million, 
+such that the columns add to 1 million in the end.
+
 ```{r}
 de_tpm <- de_xp |>
   mutate(
@@ -217,14 +246,19 @@ de_tpm <- de_xp |>
     cols(rpk_scale = colSums(.assays_asis$RPK) / 1e6),
     TPM = RPK / .cols$rpk_scale
   )
-de_tpm
+
+colSums(assay(de_tpm, "TPM"))
 ```
 
 We can directly pipe an SE object into a `ggplot()` command
-after loading _tidySummarizedExperiment_.
+after loading _tidySummarizedExperiment_. 
+We can use this to plot our newly computed TPM values 
+across genes and samples, splitting by gene biotype, 
+and by the treatment group.
 
 ```{r}
 #| message: false
+#| warning: false
 library(tidySummarizedExperiment)
 library(ggplot2)
 
@@ -239,8 +273,12 @@ de_tpm |>
 
 # Grouping and summarizing abundance over samples
 
+Suppose we want to make some plots focusing on average
+abundance in each treatment group, focusing on the genes
+with evidence of differential expression.
 First we filter to significant genes and group samples by 
-condition group, the summarize the average TPM in each group.
+condition group, then we can summarize the average TPM in each group, 
+with the following code:
 
 ```{r}
 de_tpm_summary <- de_tpm |>
@@ -252,7 +290,7 @@ de_tpm_summary
 ```
 
 Next we group the data by gene biotype and select the top three
-genes per biotype by the largest `TPM_ave` difference 
+genes per biotype by the largest `ave_TPM` difference 
 between treatment and control groups.
 
 ```{r}
@@ -266,8 +304,8 @@ de_tpm_summary_slice <- de_tpm_summary |>
 de_tpm_summary_slice
 ```
 
-Finally, we can make a plot of top 3 TPM differences per biotype, with 
-a point for the median and a line representing the range within the group:
+We can make a plot of top 3 TPM differences per biotype, with 
+a point for the mean and a line representing the range within the group:
 
 ```{r}
 de_tpm |>
