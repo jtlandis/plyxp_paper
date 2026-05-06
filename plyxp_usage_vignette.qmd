@@ -285,8 +285,6 @@ condition group, then we can summarize the average TPM in each group,
 with the following code:
 
 ```{r}
-#| lst-label: lst-de-summary1
-#| lst-cap: plyxp average TPM per condition
 
 de_tpm_summary <- de_tpm |>
   filter(rows(padj < 0.05)) |>
@@ -324,7 +322,8 @@ de_tpm_summary |>
 
 The above approach may not always be ideal if the order of the
 summarized columns is not known in advance.
-However, because we had renamed the column dimension in @lst-de-summary1,
+However, because we had renamed the column dimension with
+`cols(.samples = unique(dex))`,
 we may use the column names as a specific index.
 For example, you could use the `.assays_asis` variant as shown below.
 
@@ -364,7 +363,7 @@ de_tpm |>
   scale_x_log10(labels = scales::label_log())
 ```
 
-We can make a simple heatmap, additionally showing the value per 
+We can make a simple heatmap, additionally showing the value per
 donor cell line.
 
 ```{r}
