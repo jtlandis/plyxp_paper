@@ -28,12 +28,12 @@ Performing complex operations such as grouping over sets of rows and columns and
 The _tidyomics_ project was created within R/Bioconductor to help address this issue [@Hutchison2024], providing methods and coding paradigms for working with common R data classes representing genomic ranges [@Lee2019; @Lee2020], count matrices [@Mangiola2021bulk], and Seurat objects [@Mangiola2021Seurat].
 The project enables intuitive manipulation and visualization without requiring users to learn domain-specific syntax.
 _tidyomics_ packages and workflows enable chained data-manipulative operations that resemble the style and framework of tidy data analysis [@Wickham2014] as implemented in _dplyr_ [@dplyr] and other _tidyverse_ [@tidyverse] packages, or chained operations for python _DataFrames_ using _pandas_ [@McKinney2022].
-Due to the popularity of the _tidyverse_ among newer R users, _tidyomics_ increases the accessibility of omic data analysis.
+Taking advantage of the _tidyverse_ style, _tidyomics_ increases the accessibility of omic data analysis.
 
-Here, we propose a new expressive grammar for access and manipulation of annotated matrix data and a framework for efficiently performing the operations implied by the syntax (@fig-plyxp-syntax).
-Data within the annotated matrix object are lazily bound to a series of environments that are evaluated when the user forces their symbols (@fig-plyxp-diagram).
+Here, we propose a new expressive grammar for access and manipulation of annotated matrix data and a framework for efficiently performing the operations implied by the syntax.
+Data within the annotated matrix object are lazily bound to a series of environments, which means that expressions are evaluated when the user forces their symbols.
 Thus, a user has more freedom in how they choose to work with their data.
-We introduce the _plyxp_ R package that implements this grammar, allowing the use of _dplyr_ syntax with the Bioconductor _SummarizedExperiment_ (SE) data class.
+We introduce the _plyxp_ R/Bioconductor package implementing this grammar, for using _dplyr_ syntax with the Bioconductor _SummarizedExperiment_ (SE) data class.
 
 The _tidySummarizedExperiment_ package, which was released with Bioconductor 3.12 in 2020, also provides _dplyr_-like access to SE objects within the _tidyomics_ project.
 The _tidySummarizedExperiment_ package allows users to approach the SE as an abstracted data frame, conceptually unwrapping the compact matrix representation into a tidy, long-form version.
@@ -41,22 +41,23 @@ _tidySummarizedExperiment_ facilitates data exploration and visualization, allow
 
 <!-- and summarization tasks that may not necessarily result in an SE.-->
 
-However some complex computations involving simultaneous manipulation of matrix values and annotation metadata were slower than necessary, a limitation addressable through data-masking strategies.
+However some complex computations involving simultaneous manipulation of matrix values and annotation metadata were slower than necessary, a limitation addressable through data masking strategies.
 _plyxp_'s use of data masking from the _rlang_ [@rlang] package provides gains in efficiency and is currently used to speed up existing functionality within _tidySummarizedExperiment_.
 Further, _plyxp_ reinforces the structure of the annotated matrix through additional syntax compared to _tidySummarizedExperiment_, often resulting in more verbose, but more specific evaluation.
 
-![Diagram of the _plyxp_ syntax with _dplyr_ `mutate` function where the `assays`, `rows`, and `cols` are represented by the green, purple, and yellow blocks respectively. Panel A presents how the color coded syntax may act upon an annotated matrix object's contexts to insert new values as represented by the blue blocks. Panel B displays the usage of pronouns between contexts. Pronouns first access the requested data "as is" before reshaping the data for the appropriate context. Black bounding boxes indicate elements of a list.](./application_note_F2_003.png){#fig-plyxp-syntax}
+![Diagram of the _plyxp_ syntax with _dplyr_ `mutate` function where the `assays`, `rows`, and `cols` are represented by the green, purple, and yellow blocks respectively. (A) Syntax within the `mutate(...)` call determines in which context to insert new values (blue blocks). (B) Usage of pronouns allows multiple types of referencing between contexts. Pronouns first access the requested data "as is" before reshaping the data for the appropriate context. Black bounding boxes indicate elements of a list.](./application_note_F2_003.png){#fig-plyxp-syntax}
 
 # Syntax
 
-We describe a grammar in which users can access, modify, and append data across different contexts of a dataset, where here we mean "context" to refer to a collection of objects of the same length (for vectors) or dimension (for matrices), which collectively describe either features, samples, or a matrix of values over features and samples.
+We describe a grammar in which users can access, modify, and append data across different contexts of a dataset.
+A "context" refers to a collection of objects of the same length (for vectors) or dimension (for matrices), which collectively describe either features, samples, or a matrix of values over features and samples.
 For annotated matrix data with $n$ rows and $p$ columns, we define three contexts: the `assays` consist of one or more matrices of size $n \times p$; the `rows` consist of row metadata (a collection of vectors of length $n$ describing the features); and the `cols` consist of column metadata (a collection of vectors of length $p$ describing the samples/cells).
 For example, an object representing an RNA-seq experiment might have an `assays` context consisting of a counts matrix and a transcripts-per-million (TPM) matrix across $n$ genes and $p$ samples, a `rows` context with feature metadata such as alternative gene identifiers and gene length, and a `cols` context with sample metadata such as library size and sample condition group.
 
 By default, expressions are evaluated against the named symbols within the `assays` context.
 The user can specify to evaluate against named symbols in the row or column metadata by decorating their expressions with sentinel functions, `rows(...)`{.r} or `cols(...)`{.r}, as shown in [@fig-plyxp-syntax]A.
 Beyond communicating where expressions are evaluated, this syntax also enforces where the resulting vector or matrix will be stored.
-For example, with the `mutate()`{.r} command, the new objects are bound to their respective context within the object, but for the `filter()`{.r} command, instead of adding data, these results inform how the rows or columns should be subset.
+For example, with the `mutate()`{.r} command, the new objects are bound to their respective context within the object, but for the `filter()`{.r} command, instead of adding data, the syntax determines how the rows or columns are subset.
 
 ```r
 data |>
@@ -75,11 +76,9 @@ data |>
 ```
 
 The above example demonstrates this grammar as implemented in _plyxp_.
-The user computes the logarithm of the counts matrix plus a pseudocount, and creates a new logical variable in the column metadata, each of which are stored in their respective contexts.
-In the next step of the pipe, rows and columns are filtered based on available metadata about the genes and the samples.
+In the first chunk, the user creates a new matrix, the logarithm of the counts matrix plus a pseudocount, and creates a new logical variable in the column metadata, each of which are stored in their respective contexts.
+In the next code chunk, rows and columns are filtered based on available metadata about the genes and the samples.
 Here the base R `|>`{.r} symbol refers to piping the results of a function into the first place argument of the following function.
-As in _dplyr_, the `mutate()`{.r} verb implies an addition of an object (matrix or vector) to the corresponding evaluation context, whereas `filter()`{.r} subsets the data (described more later).
-
 The _plyxp_ syntax is designed to be convenient and flexible, providing users with multiple tools to access or manipulate their data across contexts.
 For example, consider the following:
 
@@ -96,27 +95,22 @@ data |>
 <!--\end{lstlisting}-->
 
 Using pronouns `.cols` and `.rows`, the user accesses vectors from another context.
-A "pronoun" is a special object of the _rlang_ package that provides an unambiguous symbol lookup into a named list or environment.
-In the above expression, an element-wise division of the counts matrix via data within the columns or rows is done by replicating the data to the appropriate size automatically.
+A "pronoun" is a special object of the _rlang_ package that provides an unambiguous symbol lookup into a named list or environment ([@fig-plyxp-syntax]B).
+In the above expression, we divide the counts matrix by vectors from the column or row metadata, replicating the data to the appropriate size automatically.
 
-In the computation of `gene_ave` in the following code chunk, the user employs the efficient row-wise means operator `rowMeans`.
-Alternatively, for `gene_ave2` the expression `.assays$counts` within the row context is resolved to a list where each element is a row of the counts matrix.
-A list output for the `.assays` pronoun offers flexibility as lists can be supplied to the apply family of functions or using _purrr_ [@purrr] as shown below.
-
-<!--\begin{lstlisting}-->
+Next, we consider two approaches to adding the row-wise mean of the counts matrix to the row metadata:
 
 ```r
-data |>
-  mutate(
-    rows(
-      gene_ave = rowMeans(.assays_asis$counts),
-      gene_ave2 = map_dbl(.assays$counts, mean)
-    )
+data |> mutate(
+  rows(
+    ave = rowMeans(.assays_asis$counts),
+    ave2 = map_dbl(.assays$counts, mean)
   )
+)
 ```
 
-<!--\end{lstlisting}-->
-
+In the computation of `ave`, the user employs the efficient row-wise means operator `rowMeans`. ollowing code chunk, the user employs the Alternatively, for `ave2`, the expression `.assays$counts` within the row context is resolved to a list where each element is a row of the counts matrix.
+A list output for the `.assays` pronoun offers flexibility as lists can be supplied to the apply family of functions or using _purrr_ [@purrr].
 In the example code above, the `data` object can be instantiated from any _SummarizedExperiment_ using the `new_plyxp()`{.r} function (see Supplementary Note for more details).
 
 # Semantics
@@ -127,14 +121,15 @@ _plyxp_ enforces conventions that eliminate ambiguity while providing flexibilit
 <!--\begin{enumerate}-->
 
 1. Expressions are scoped explicitly to an evaluation context.
-2. Evaluation contexts are connected via pronouns, which provide both an `asis` and size-stable version of the requested data.
-3. _dplyr_ verbs (`mutate()`{.r}, `filter()`{.r}, etc.) only support expressions that would result in the same structure of object as input (SE object).
+2. Evaluation contexts are connected via pronouns, which provide both an `asis` and reshaped size-stable version of the requested data.
+3. _dplyr_ verbs (`mutate()`{.r}, `filter()`{.r}, etc.) only support expressions that would output the same class of object as input (SE object).
+
 <!--\end{enumerate}-->
 
 Evaluation contexts and their connection via pronouns are diagrammed in @fig-plyxp-diagram.
-We note that _plyxp_ relies on Bioconductor-native calls, e.g. subsetting with square brackets `[,]`, and is thus never faster than using the SE interface directly.
+We note that _plyxp_ relies on Bioconductor-native calls, _e.g._ subsetting with square brackets `[,]`{.r}, and is thus not guaranteed to be faster than using the SE interface directly.
 There will always be some overhead in generating the necessary abstraction to enable implicit references into the object as required by _dplyr_.
-However, we aim that _plyxp_ always be as close to Bioconductor-native speed as possible, via line profiling of the function definitions using _profvis_.
+However, we aim that _plyxp_ always be as close to Bioconductor-native speed as possible, with performance comparison in a following section.
 
 ## Pronouns and Data Masks
 
@@ -156,7 +151,7 @@ _plyxp_ enables expressive evaluation by leveraging _rlang_ data masks,
 a series of basic R environments that are evaluated with the _rlang_ tidy evaluation engine [@rlang; @Wickham2019].
 _plyxp_ exploits several utilities from the _rlang_ package, such as lazy evaluation and _rlang_ pronouns, to manage these environments.
 Here, "lazy evaluation" refers to expressions whose computation is delayed until the value is accessed.
-In _plyxp_, various expressions are lazily bound within the data mask contexts, such as the as-is and reshaped bindings displayed in the extended environments of @fig-plyxp-diagram.
+In _plyxp_, various expressions are lazily bound within the data mask contexts, such as the `asis` and reshaped bindings displayed in the extended environments of @fig-plyxp-diagram.
 "_rlang_ pronouns" can be conceptually thought of as a pointer to another environment.
 _rlang_ pronouns are utilized within the _dplyr_ package to disambiguate where to find a symbol, in either the calling environment or user's data with `.env` and `.data` pronouns respectively.
 
@@ -167,17 +162,17 @@ _rlang_ pronouns are utilized within the _dplyr_ package to disambiguate where t
 This suggestion is motivated by R's lexical scoping, which allows variable bindings to be searched through environment parents during evaluation [@rbase].
 Placing pronouns in the final parent of the mask, _i.g._ the final environment prior to the calling environment, will ensure the user's data within the context are prioritized over potential access to other contexts.-->
 
-In _plyxp_, these pronouns are used to connect each context through two pronouns, an `asis` variant and a "size-stable" variant.
-The `asis` variant is to provide the user with access to the actual data stored on the object, as there may be efficient ways to operate on its native shape _e.g._ the row-wise and column-wise matrix operations in base R and _matrixStats_.
-The size-stable variant provides the requested data reshaped to match the size of the current context.
-The size-stable variant is intended to reduce friction from pulling data from other contexts, as there is no guarantee the target data `asis` will match the expected output size of the evaluation context.
+In _plyxp_, these pronouns are used to connect each context through two pronouns, an `asis` variant and a reshaped variant.
+The purpose of the `asis` variant is to provide the user with access to the actual data stored on the object, as there may be efficient ways to operate on its native shape _e.g._ the row-wise and column-wise matrix operations in base R and _matrixStats_.
+The reshaped variant provides the requested data such that the output matches the size of the current context.
+The reshaped variant is intended to reduce friction from pulling data from other contexts, as there is no guarantee the target data `asis` will match the expected output size of the evaluation context.
 
 With annotated matrix data, there are predictable transformations that may be used to guarantee size stability.
 For example, consider requesting row or column data from within the `assays` evaluation context.
-To make the row data size stable, we need only to replicate the target vector as many times as the number of columns in our matrix context, and then concatenate these vectors.
-For column data within the `assays` evaluation context, we replicate each element of the target vector as many times as the number of rows in our matrix context.
+To make the row data size stable, we need only to replicate the requested vector $p$ times in our matrix context, and then concatenate these vectors.
+For column data within the `assays` evaluation context, we replicate each element of the requested vector $n$ times in our matrix context.
 Requesting assay data from within the `rows` or `cols` evaluation context, we may reshape the matrix by returning a list where each element is a row or column of the matrix, respectively.
-These transformations from "as-is" data to the "size-stable" variant are diagrammed within [@fig-plyxp-syntax]B.
+These transformations from `asis` data to the reshaped variant are diagrammed within [@fig-plyxp-syntax]B.
 
 <!--\begin{figure*}[t]-->
 <!--\centering-->
@@ -188,16 +183,15 @@ These transformations from "as-is" data to the "size-stable" variant are diagram
 \label{fig:plyxp-diagram}
 \end{figure*}-->
 
-![Diagram of the data masking structure in *plyxp*. Grey rectangles represent environments. Parent environments are linked to child environments by dashed lines where the circle indicates the parent and the arrow indicates the child environment. Example variable bindings are shown within environments. Data mask contexts are grouped by color where the `assays`, `rows`, and `cols` contexts are represented by the green, purple, and yellow blocks respectively. Red lines show connections from pronouns of one context to environments that are children of other contexts. For brevity, neither full environment hierarchies nor all extended environments are shown. Entry points for each context is indicated by the blue star. Through *rlang*'s tidy evaluation engine, symbols within the data mask are evaluated before searching the calling environment.](./application_note_F1_005.png){#fig-plyxp-diagram}
+![Diagram of the data masking structure in _plyxp_. Data mask contexts are grouped by color where the `assays`, `rows`, and `cols` contexts are represented by teh green, purple, and yellow blocks respectively. Grey rectangles represent environments and contain example variable bindings. Parent environments are linked to child environments by dashed lines. Pronoun bindings are linked to their target environment contexts by red lines. For brrevity, neither full environment hierarchies nor all extended environments are shown. Entry points for each context is indicated by the blue star. Through _rlang_'s tidy evaluation engine, symbols within the data mask are evaluated before searching the calling environment.](./application_note_F1_006a.png){#fig-plyxp-diagram}
 
 ## Grouping
 
-In _dplyr_, specifying groups with `group_by()`{.r} augments the behavior of further _dplyr_ verbs.
+In _dplyr_, specifying groups with the addition of a `group_by()`{.r} command and listing one or more variables augments the behavior of further _dplyr_ verbs, enabling computations within `mutate()`, `summarize()`, `slice()` and other commands to iterate over data groups.
 _dplyr_ grouping operations traditionally include additional metadata on the target object describing how the data should be partitioned.
-This strategy works well for data structures that are rectangular, but may lead to ambiguities for data structures that deviate from this structure, such as annotated matrix data.
+This strategy works well for data structures that are tabular, but may lead to ambiguities for data structures that deviate from this structure, such as annotated matrix data.
 For tabular data, there is only one dimension (along the rows) in which those data can be partitioned, and no matter how the rows are partitioned, a new table can be constructed from the results.
-This is not true for matrices.
-One such example would be to attempt to group by matrix values > 100.
+This is not true for matrices; consider an attempt to group by matrix values > 100.
 Here, there is no guarantee the partitioning of arbitrary elements of a matrix would create valid sub-matrices.
 It is for this reason that _plyxp_ follows strict heuristics for grouping and only allows groupings that partition rows or columns of the matrix.
 
@@ -217,32 +211,64 @@ In other words, the `assays` context will always respect groupings about the `ro
 All evaluation within _plyxp_ is intended to take place within one of the specified contexts mentioned previously.
 Due to the particular shape of annotated matrix data, each context has a unique notion of size and a unique set of symbols within.
 Additional syntax is used to declare where an expression evaluates and there is no additional cost to accessing data `asis`.
-An alternative to this approach would be to force all variables within the same context, such as an instantiated or abstracted _data.frame_ where all contexts are joined together.
-A single context would require variables within the assays to be unwound into one dimensional vectors, and data within the row and column metadata tables to be replicated appropriately.
-Additional performance considerations are discussed in more detail in the supplemental note.
+An alternative to this approach would be to force all variables within the same context, such as an instantiated or abstracted table where all contexts are joined together.
+A single context would require variables within the assays to be unwound into one-dimensional vectors, and data within the row and column metadata tables to be replicated appropriately.
+
+<!--**Dividing counts by length**
+
+|      | native R |   plyxp | unwound |
+| ---- | -------: | ------: | ------: |
+| Time |   4.7 ms | 19.2 ms |  372 ms |
+
+**Computing row means**
+
+|      |   as-is | reshaped |
+| ---- | ------: | -------: |
+| Time | 14.4 ms |   155 ms |
+
+: Performance comparison of plyxp and alternative approaches. Run times reported as median over repeated evaluations. Note that the "Computing row means" task compares pronoun access options within plyxp as demonstrated in the last code chunk of the Syntax section. {#tbl-performance}-->
+
+| Task                      | Method   |    Time |
+| ------------------------- | -------- | ------: |
+| Dividing counts by length | native R |  4.7 ms |
+| Dividing counts by length | plyxp    | 19.2 ms |
+| Dividing counts by length | unwound  |  372 ms |
+| Computing row means       | as-is    | 14.4 ms |
+| Computing row means       | reshaped |  155 ms |
+
+: Performance comparison of plyxp and alternative approaches. Run times reported as median over repeated evaluations. Note that the "Computing row means" task compares pronoun access options within plyxp as demonstrated in the last code chunk of the Syntax section. {#tbl-performance}
 
 We compared the performance of various approaches to the operation of scaling the counts matrix by gene length within the _airway_ dataset [@Himes2014].
-We recorded the median runtime to be $\sim 5.3$ms for native Bioconductor functions, $\sim 19.0$ms for _plyxp_, and $\sim 279.2$ms for the unwinding approach described above.
-For this operation, _plyxp_ is $\sim 14$ times faster than the naive approach but $\sim 4$ times slower than native calls.
-This is only one simple example of an operation, and a larger dataset would undoubtedly have a larger gap in performance for the naive approach.
-Although _plyxp_ introduces slight overhead, we find that its gains in usability and syntactic precision more than justify the cost.
+For this operation, _plyxp_ was faster than the unwinding approach but somewhat slower than native calls ([@tbl-performance]).
+We also compared computing row means with either the `asis` or reshaped pronouns using either the optimized `rowMeans()` or `map_dbl()` from _purrr_, respectively.
+Naturally, opting to not reshape the data yielded substantial computation time saving.
+
+Evaluation code available in the `comparison.R` file within the associated GitHub repository [@plyxp_examples].
+Although _plyxp_ introduces slight overhead, we find that its gains in usability and syntactic precision justify the cost.
+Furthermore, for more compute-heavy operations, especially in grouping scenarios, _plyxp_ performs at least as well as native calls.
+Additional performance considerations are discussed in more detail in the Supplemental Note.
 
 <!--%\mike{then we need to link out to the actual code, as a section of the supplement and/or an R script in a github repo. If you want the R script could go into inst/script in plyxp itself, or into a repository for all code examples used in the paper} \justin{I like both options, the inst/ option would probably be easier. Creating code examples to live somewhere would also be helpful however.}-->
 
 # Conclusion
 
-_plyxp_ provides a framework for operating on annotated matrix data.
-As data masking was possible via the _rlang_ package, we were able to introduce novel syntax for operating on SE objects within Bioconductor that is ergonomically inspired by _dplyr_ style and unambiguously expressive.
+_plyxp_ provides a framework for operating on annotated matrix data, making common _dplyr_ functions as natural to use as with tabular data.
+Using data masking from the _rlang_ package, we introduced novel syntax for operating on SE objects within Bioconductor that is ergonomically inspired by _dplyr_ style and is still unambiguously expressive.
 _tidySummarizedExperiment_ has incorporated _plyxp_ methods internally for some operations as of Bioconductor 3.22 release in Fall 2025, such that users of both _plyxp_ and _tidySummarizedExperiment_ benefit from the performance gains described above, as compared to operations that would require creation of a long form tabular representation of the annotated matrix data.
 We imagine that the grammar described here could be applied to manipulate _AnnData_ with _pandas_ methods.
-We plan to release the internals of _plyxp_ that construct and manage the data masks so that developers can choose to create their own _dplyr_ style for additional R classes.
+In the future, we plan to release the internals of _plyxp_ that construct and manage the data masks so that developers can choose to create their own _dplyr_ style for additional R classes.
 
 # Code Availability
 
-The _plyxp_ software package is available from Bioconductor, installable with `BiocManager::install()`, and at
+The _plyxp_ software package is available from Bioconductor, installable with `BiocManager::install("plyxp")`{.r}, and at
 [https://github.com/jtlandis/plyxp](https://github.com/jtlandis/plyxp).
-All code used in this paper, including comparisons of run time to alternative implementations and reproducible code chunks appearing above, is available at
-[https://github.com/jtlandis/plyxp_paper](https://github.com/jtlandis/plyxp_paper)
+All code used in this paper, including comparisons of _plyxp_ to alternative implementations, and reproducible code chunks appearing in this manuscript, is available at
+[https://github.com/jtlandis/plyxp_paper](https://github.com/jtlandis/plyxp_paper) [@plyxp_examples].
+Evaluations were run with Bioconductor 3.23 and R 4.6.0, with the following package versions:
+_plyxp_ (1.6.1),
+_dplyr_ (1.2.1),
+_tidySummarizedExperiment_ (1.22.0),
+_airway_ (1.32.0).
 
 <!--% \begin{itemize}
 % \item Introduce counter example of Unwinding all data
@@ -259,15 +285,3 @@ All code used in this paper, including comparisons of run time to alternative im
 % \item user has choice on how to access data from other evaluation contexts. Utilize the size stable variant, or the as-is variant
 % \end{itemize}
 % \end{itemize}-->
-
-{{< pagebreak >}}
-
-::: {#refs}
-
-```{=typst}
-#context biblio-content.final()
-```
-
-:::
-
-{{< pagebreak >}}

@@ -1,23 +1,25 @@
 ---
 title: Efficient and Tidy Manipulation of Annotated Matrix Data with plyxp
 abstract: >
-  In order to manipulate high-dimensional omics data, such as bulk or single cell gene expression counts matrices, a bioinformatics analyst must typically learn domain-specific functions and syntax.
+  Manipulating high-dimensional omics data, such as bulk or single cell gene expression counts matrices, typically requires a bioinformatics analyst to learn domain-specific functions and syntax.
 
-  These matrix-centric functions and syntax may not be as straightforward as working with tidy data analytic principles using tools such as dplyr applied to tabular data.
+  These matrix-centric functions and syntax can be less intuitive than working with tidy data analytic prinicples, as exemplified by tools such as dplyr applied to tabular data.
 
-  We propose an expressive grammar for manipulating annotated matrix data, with syntax to compute on and update matrix data and tabular row and column metadata, including row-wise or column-wise grouped operations.
+  We proppose an expressive grammar for manipulating annotated matrix data, with syntax to access, modify, and append matrix data and tabular row and column metadata, including row-wise or column-wise grouped operations.
 
-  This grammar works by defining multiple contexts, and providing pronouns for specific recall and assignment in these contexts.
+  This grammar defines multiple contexts, and provides pronouns for specific recall and assignmnet within and across these contexts.
 
-  The plyxp package is implementation of this grammar for the R/Bioconductor ecosystem, with efficient abstractions for the SummarizedExperiment class. 
+  The plyxp package is an implementation of this grammar for the R/Bioconductor ecosystem, with efficient abstractions for  the SummarizedExperiment class. 
 
   We demonstrate plyxp's efficiency compared to alternative approaches on data manipulation tasks requiring computation across contexts.
 author:
   - name: Justin T. Landis
+    orcid: 0000-0001-5501-4934
     affiliations:
       - ref: bcb
       - ref: gen
   - name: Michael I. Love
+    orcid: 0000-0001-8401-0545
     affiliations:
       - ref: gen
       - ref: biostat
@@ -37,5 +39,32 @@ affiliations:
 ---
 
 {{< include body.qmd >}}
+
+# Competing interests
+
+No competing interest is declared.
+
+# Author contributions statement
+
+J.T.L. developed the software.
+J.T.L. and M.I.L. contributed to the conceptualization and design of the software and to the writing of the manuscript.
+
+# Acknowledgments
+
+The authors thank Rachel Sharp, Beatriz Campillo Miñano, Stuart Lee, and Stefano Mangiola for comments on an earlier draft.
+
+# Funding
+
+This work is supported in part by an Essential Open Source Software (EOSS) grant from the Wellcome Trust \[313919/Z/24/Z\], and by the National Institutes of Health grant R01-HG009937.
+
+::: {#refs}
+
+```{=typst}
+#context biblio-content.final()
+```
+
+:::
+
+{{< pagebreak >}}
 
 {{< include supp.qmd >}}

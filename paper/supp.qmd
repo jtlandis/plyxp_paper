@@ -6,43 +6,43 @@
   [
 ```
 
-## Use with _tidySummarizedExperiment_
+# Supplementary Note
 
-_plyxp_ enables users to continue to use the _tidySummarizedExperiment_ package for operating directly on SE objects using _dplyr_ verbs without namespace conflicts, as it employs a class _PlySummarizedExperiment_ to trigger its methods.
-In practice, the user instantiates a _PlySummarizedExperiment_ object by providing an SE to the `new_plyxp`{.r} function.
+## Interoperability with _tidySummarizedExperiment_
+
+_plyxp_ enables users to continue using the _tidySummarizedExperiment_ package for operating directly on SE objects using _dplyr_ verbs without namespace conflicts, as it employs a class _PlySummarizedExperiment_ to trigger its methods.
+In practice, the user instantiates a _PlySummarizedExperiment_ object by providing an SE to the `new_plyxp()`{.r} function.
 The _PlySummarizedExperiment_ class is related to the SE class by composition in that _PlySummarizedExperiment_ contains a single slot which accepts any object inheriting from the _SummarizedExperiment_ class.
-
-<!--% The _PlySummarizedExperiment_ class enables _plyxp_ methods when _dplyr_ generics are invoked.-->
-
-Due to composition, plyxp can generalize its core functionalities to more specialized sub classes of the _SummarizedExperiment_ class, such as _SingleCellExperiment_ class.
+Due to composition, _plyxp_ can generalize its core functionalities to more specialized sub classes of the _SummarizedExperiment_ class, such as _SingleCellExperiment_ class.
 Meanwhile, _tidySummarizedExperiment_ users can continue to use _dplyr_ verbs as previously without any change in behavior.
 
-## Performance
+## Performance Considerations
 
 Abstracting a user's entry point into annotated matrix objects provides several advantages.
-To emphasize these advantages, we will first consider a counter example.
-To be comparable, we will assume that this example implementation is isomorphic in that both the input and output are the same object classes.
-A sensible approach is to unwind the object into a tabular object and reconstruct the original annotated matrix object before returning.
-An advantage of this framework is that it allows the use of standard tabular processing libraries directly like _dplyr_ or _pandas_ directly.
-
+To emphasize these advantages, we will first consider a counterexample.
+We will require an isomorphic implementation, meaning that both input and output are the same object classes.
+A sensible approach is to unwind the annotated matrix into a tabular structure and then reconstruct the original annotated matrix object before returning.
+An advantage of this framework is that it allows the use of standard tabular processing libraries directly.
 However, it has notable drawbacks that depend on the complexity of the user's object.
-Under this model, one can expect a large amount of overhead dedicated to transforming their object into the tabular structure required for a tabular processing library.
+
+Under this unwinding model, one can expect a large amount of overhead dedicated to transforming the object into the tabular structure required for a tabular processing library.
 In the worst case scenario, this transformation is done eagerly for all data in the object per method, which would be a significant amount of work done before any user expressions are evaluated.
 Another consideration for constructing this tabular structure would be the possibility of symbol collision, that is, how to resolve the resulting column names if the input contexts have identical names.
 In order to work, some heuristic would need to be established such as a renaming convention or context precedence.
-In either case where these collisions would occur, the resulting code would be ambiguous, and it may be better to error and enforce uniqueness across the entire object than force the user to handle heuristic name resolution.
+In either case where these collisions would occur, the resulting code would be ambiguous, and it may be better to send an error and enforce uniqueness across the entire object than force the user to handle heuristic name resolution.
 The final issue with the conversion is the loss of information regarding where data is from and where it should be set.
-In the case of _dplyr_ or \pandas verbs that modify the object (`mutate` or `.assign()`{.python}, respectively), it is unclear where new data should be set in the reconstructed annotated matrix object.
+In the case of _dplyr_ or _pandas_ verbs that modify the object `mutate` or `.assign()`{.python}, respectively, it is unclear where new data should be set in the reconstructed annotated matrix object.
 A safe choice would be to set the new data as a new assay, however, if the implementation would need to set the result in either the row or column metadata tables, then additional computation would be required to ensure its uniqueness and ability to fit in one of those positions.
 
 In _plyxp_, all issues related to ambiguity are resolved by constructing three separate data masks.
 _plyxp_ imposes a verbose, but specific syntax to communicate intent of which context an expression should be evaluated.
-Under this model, there is no additional computational cost for direct access, no possibility of symbol collision, and no ambiguity about where data will be set on the output object.
+Under _plyxp_'s model, there is no additional computational cost for direct access, no possibility of symbol collision, and no ambiguity about where data will be set on the output object.
 Only symbols bound within the contexts the user requests are evaluated, saving time compared to approaches that manipulate the entire structure all together.
-If the user were to request cross-context data in which the target data may be transformed, these bindings are lazy and save computation time. "lazy" evaluation refers to computation that is deferred until the value required, and thus lazy bindings that are never forced are never evaluated.
-This is especially convenient for grouping operations, in which constructing groups eagerly for a dense objects would require extensive computation, in this model's design of the data masks, the cost of performing this computation is only paid once per data mask per symbol.
+If the user were to request cross-context data in which the requested data may be transformed, these bindings are lazy and save computation time if never forced.
+This is especially convenient for grouping operations, in which constructing groups eagerly for a dense objects would require extensive computation.
+In this model's design of the data masks, the cost of performing this computation is only paid once per data mask per symbol.
 
-Finally, _plyxp_ makes some assumptions about how the user may want their data to be shaped for their current context, but provides the user with a way to access the underlying data without reshaping.
+Finally, _plyxp_ makes some assumptions about how the user may want their data to be shaped in a given context, but provides the user with a way to access the underlying data without reshaping.
 This is motivated by the fact that, despite utilizing efficient subset functions when possible, it may still be more efficient for the user to operate on the native data structure with optimized routines, opting to forego any potentially expensive transformations.
 
 ```{=typst}
