@@ -87,7 +87,7 @@ all.equal(
 )
 
 
-## Comparison of Complex Grouop Scenarios
+## Comparison of Complex Group Scenarios
 
 # With increasing complexity of the expression,
 # especially in grouping scenarios, plyxp begins to overtake
