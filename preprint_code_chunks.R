@@ -1,7 +1,7 @@
 library(airway)
 library(plyxp)
 library(purrr)
-
+data("airway")
 se <- airway
 rowRanges(se) <- NULL
 
